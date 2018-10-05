@@ -23,10 +23,10 @@ median_fake = marks_sorted.median()
 print('fake: mean={:.2f}, median={:.2f}'.format(mean_fake, median_fake))
 
 # b)
+plt.subplot(211)
+marks.plot(kind='hist', cumulative=True, histtype='step', density=True, bins=8,
+        edgecolor='black')
 
+plt.subplot(212)
 marks.plot(kind='box', title='Boxplot')
-plt.show()
-
-marks.plot(kind='hist', cumulative=True, histtype='step',
-        normed=True, bins=8, edgecolor='black')
 plt.show()
