@@ -4,6 +4,7 @@
 from scipy.stats import norm
 from math import sqrt
 
+# a)
 mean_population = 100
 sd_population = 10
 sample_size = 25
