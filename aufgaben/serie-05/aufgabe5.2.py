@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
 from pandas import Series, DataFrame
+from math import sqrt
 
 values = np.array([0, 10, 11])
 
@@ -49,6 +50,19 @@ plt.tight_layout()
 plt.show()
 
 # d)
+n = 200
 e_x = values.sum() / values.size
+print('Berechnung:')
 print('E[Xn]={}'.format(e_x))
-# TODO: Var[Xn]
+n_x = len(values)
+var_x = ((values[0]-e_x)**2/n_x + (values[1]-e_x)**2/n_x + (values[2]-e_x)**2/n_x)/n
+print('Var[Xn]={:.4f}'.format(var_x))
+print('σ[Xn]={:.4f}'.format(sqrt(var_x)))
+
+print('\nSimulation')
+sim = np.random.choice(values, size=n*1000, replace=True)
+sim = DataFrame(np.reshape(sim, (n, 1000)))
+sim_mean = sim.mean()
+print('E[Xn]={}'.format(sim_mean.mean()))
+print('Var[Xn]={:.4f}'.format(sim_mean.std()**2))
+print('σ[Xn]={:.4f}'.format(sim_mean.std()))
