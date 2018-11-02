@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats as st
+from math import sqrt
 
 n_mice = 54
 n_groups = 3
@@ -40,3 +41,15 @@ st.probplot(np.log(iron['medium']), plot=plt)
 plt.ylabel('log(iron["medium"])')
 plt.show()
 # Die Normalverteilung passt besser auf den logarithmierten Plot.
+
+# d)
+mean = iron['medium'].mean()
+var = iron['medium'].var()
+p = 1 - st.norm.cdf(x=10, loc=mean, scale=sqrt(var))
+print('P(X<10)=1-P(X≤10)={:.4f}'.format(p))
+
+# e)
+mean = np.log(iron['medium']).mean()
+var = np.log(iron['medium']).var()
+p = 1 - st.norm.cdf(x=np.log(10), loc=mean, scale=sqrt(var))
+print('P(X<log(10))=1-P(X≤log(10))={:.4f}'.format(p))
