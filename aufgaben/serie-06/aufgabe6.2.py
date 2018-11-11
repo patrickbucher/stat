@@ -11,6 +11,8 @@ mean = 70 # cl
 sample_sd = 1.96
 
 # Step 2: null hypothesis: bottle filling follows model
+# H0: population mean = sample mean = 70
+# HA: population mean < sample mean = 70
 
 # Step 3: test statistics
 measurements = Series([71, 69, 67, 68, 73, 72, 71, 71, 68, 72, 69, 72])
@@ -24,7 +26,7 @@ a = 0.05
 # Step 5: rejection area for test statistics
 # ppf: percentile point function
 val = t.ppf(q=a, df=measurements.size - 1, loc=mean, scale=sample_sd/sqrt(measurements.size))
-print('val={:.4f}'.format(val)) # at which value is the 5th percentile?
+print('5h percentile at {:.4f}'.format(val)) # at which value is the 5th percentile?
 p = t.cdf(x=sample_mean, df=measurements.size - 1, loc=mean, scale=sample_sd/sqrt(measurements.size))
 print('p={:.4f}'.format(p))
 

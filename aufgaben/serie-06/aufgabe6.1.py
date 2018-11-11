@@ -22,12 +22,10 @@ a = 0.05
 
 # Step 5: rejection area for test statistics
 # ppf: percentile point function
-val = norm.ppf(q=0.05, loc=mean, scale=sd/sqrt(measurements.size))
-print('val={:.4f}'.format(val)) # at which value is the 5th percentile?
-
 stderr = sd/sqrt(measurements.size)
 print('standard error={:.4f}'.format(stderr))
-
+val = norm.ppf(q=0.05, loc=mean, scale=stderr)
+print('5th percentile at: {:.4f}'.format(val))
 print('standard deviations: {:.4f}'.format((val-mean)/stderr))
 print('standard deviations: {:.4f}'.format(norm.ppf(q=0.05)))
 print('p-value: {:.4f}'.format(norm.cdf(x=val, loc=mean, scale=sd)))
