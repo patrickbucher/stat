@@ -62,6 +62,12 @@ To get help on a magic command, use the question mark notation as with any
 other command. Example: `%rerun?` shows the documentation for the `%rerun`
 magic command.
 
+- `%automagic`: toggle automagic setting
+
+If `%automagic` is set, shell commands like `cat`, `cp`, `env`, `ls`, `man`,
+`mkdir`, `more`, `mv`, `pwd`, `rm`, `rmdir` can be used without prefixes.
+Otherwise, a `%` prefix is needed.
+
 ## History
 
 Lines of input and output are numbered so that single lines can be addressed:
@@ -75,7 +81,15 @@ Lines of input and output are numbered so that single lines can be addressed:
 - `___` (triple underscore): third to the last output
 - `_n` (single underscore with number): n to the last output `_4` = `Out[4]`
 
-## Miscellaneous
+## Shell Interaction
 
 - `!` at the beginning of a line: execute a shell command
+- `files = !ls -l`: store output of a shell command as a list
+    - `files.grep('foo')`: filter list by `'foo'`
+    - `files.fields(1, 2)`: display columns 1 and 2 of the output
+- `!mkdir {folder}`: create a directory with the variable `folder`'s value as a name
+    - surround a Python variable with curly braces to make it available for the shell
+
+## Miscellaneous
+
 - `;` at the end of a line: suppress output
