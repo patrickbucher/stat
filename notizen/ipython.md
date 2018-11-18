@@ -48,8 +48,6 @@
 - `%paste`: paste code from the clipboard
 - `%cpaste`: paste multiple code snippets interactively, end with `--`
 - `%run`: run a script and keep the loaded symbols in the REPL
-- `%timeit`: benchmark the execution time of a single command
-- `%%timeit`: benchmark the execution time of a multi-line code section
 - `%history`: display the command history
     - `%history -n 1-4`: display from the first to the fourth command
 - `%rerun`: run a part of the history again
@@ -59,6 +57,9 @@
     - `Plain`: most compact, least information
     - `Context`: more information
     - `Verbose`: most detailed output
+- `%load_ext`: load the extension with the given name
+- `%%file`/`%%writefile`: write the following code section to a file with the given file name
+    `-a` for appending instead of overwriting
 
 To get help on a magic command, use the question mark notation as with any
 other command. Example: `%rerun?` shows the documentation for the `%rerun`
@@ -115,3 +116,40 @@ Debugging sessions have special commands (usually, only the first letters needs 
 - `<Enter>`: repeat previous command
 - `p(rint)`: print variables
 - `h(help)`: display a list of all available commands or help to the command argument supplied
+
+## Timing and Profiling
+
+### Timing
+
+- `%time`: measure the execution time of a single statement/function call
+    - The garbage collector will be deactivated so that the result is not biased.
+- `%timeit`: measure the average execution time of a single statement/function call after repeated runs
+    - The number of runs will be determined automatically.
+- `%%timeit`: as above, but working on whole sections of code
+
+### Runtime Profiling
+
+- `%prun`: runtime profile of a single statement/function call using Python's built-in profiler
+- `%lprun`: line by line runtime profile of a single statement/function call
+    - install with `pip install line_profiler` on the shell
+    - load with `%load_ext line_profiler` in IPython
+
+### Memory Profiling
+
+- install with `pip install memory_profiler` on the shell
+- load with `%load_ext memory_profiler` in IPython
+- `%memit`: memory profile of a single statement/function call
+- `%mprun`: line by line memory profile of a single function call
+
+`%mprun` requires the profiled code to be in it's own module. Example session:
+
+    %load_ext memory_profiler
+    %%file fibonacci.py
+    def fib(n):
+        if n == 1 or n == 2:
+            return 1
+        return fib(n-1) + fib(n-2)
+
+    from fibonacci import fib
+    %mprun -f fib fib(35)
+
