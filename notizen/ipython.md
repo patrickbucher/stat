@@ -4,8 +4,7 @@
 
 - `help([symbol])` or `[symbol]?`: display the docstring of the symbol
     - Example: `help(map)` or `map?`
-- `[symbol]??`: display the source code of the symbol (only if written in
-  Python)
+- `[symbol]??`: display the source code of the symbol (only if written in Python)
 - `<Tab>`-completion: display matching `dir()` entries
 - `*` (wildcard): matches any (also empty) string
 
@@ -34,8 +33,7 @@
 
 ### History
 
-- `C-p`: previous command (type multiple times to move back through the
-  history)
+- `C-p`: previous command (type multiple times to move back through the history)
 - `C-n`: next command (type multiple times to move forth through the history)
 - `C-r`:  search backward in history
 
@@ -57,6 +55,10 @@
 - `%rerun`: run a part of the history again
 - `%save`: store the history in a file
 - `%lsmagic`: list magic functions
+- `%xmode`: set exception reporting mode
+    - `Plain`: most compact, least information
+    - `Context`: more information
+    - `Verbose`: most detailed output
 
 To get help on a magic command, use the question mark notation as with any
 other command. Example: `%rerun?` shows the documentation for the `%rerun`
@@ -93,3 +95,23 @@ Lines of input and output are numbered so that single lines can be addressed:
 ## Miscellaneous
 
 - `;` at the end of a line: suppress output
+
+## Debugging
+
+Python's standard debugger is `pdb`. IPython comes with an enhanced version `ipdb`.
+
+- `%debug`: start a debugging session starting from the last exception
+- `%pdb on`: start debugging session automatically when an exception occurs
+
+Debugging sessions have special commands (usually, only the first letters needs to be typed):
+
+- `l(ist)`: show the current location in the file
+- `u(p)`/`d(own)`: move up and down in the call stack
+- `n(ext)`: execute current line and move to next line (step over)
+- `s(tep)`: enter the function (step in)
+- `r(eturn)`: leave the function (step out)
+- `q(uit)`: leave the debugging session and exit the program execution
+- `c(ontinue)`: leave the debugging session, but keep the program running
+- `<Enter>`: repeat previous command
+- `p(rint)`: print variables
+- `h(help)`: display a list of all available commands or help to the command argument supplied
