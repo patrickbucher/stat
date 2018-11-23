@@ -38,25 +38,25 @@ matrix = np.array([[1, 2, 3],
 ### Arrays from Scratch
 
 Numpy offers various functions to generate arrays from scratch. Where a
-dimension is required (`dim`), a single number (length), a tuple of two (rows,
+dimension is required (`size`), a single number (length), a tuple of two (rows,
 columns) or more (1st dimension, 2nd dimension, 3rd dimension, etc.) can be
 passed.
 
-- `np.zeros(dim, dtype)`: array of zeros
-- `np.ones(dim, dtype)`: array of ones
-- `np.full(dim, value)`: array filled with the given value
+- `np.zeros(size, dtype)`: array of zeros
+- `np.ones(size, dtype)`: array of ones
+- `np.full(size, value)`: array filled with the given value
 - `np.arange(start, end, step)`: array with values from start (inclusive) to
   end (exclusive) and given step width; `length=(end-start)/step`
 - `np.linspace(from, to, n)`: array with evenly spaced values in interval
   `[from,to]` (both inclusive) of length n
-- `np.random.random(dim)`: uniformly distributed random values
-- `np.random.noraml(mean, sd, dim)`: normally distributed array with the given
+- `np.random.random(size)`: uniformly distributed random values
+- `np.random.normal(mean, sd, size)`: normally distributed array with the given
   mean and standard deviation
-- `np.random.randint(from, to, dim)`: random integers in the interval
+- `np.random.randint(from, to, size)`: random integers in the interval
   `[from,to)` (inclusive/exclusive)
 - `np.eye(n)`: identity matrix with n rows and columns (values at indices with
   equal row/column index are 1)
-- `np.empty(dim)`: uninitialized array, values from current memory content
+- `np.empty(size)`: uninitialized array, values from current memory content
   (garbage)
 
 ### Data Types
@@ -78,3 +78,79 @@ Common numeric types are:
     - `float_`: system default
 - complex numbers: `complex64`, `complex128`
     - `complex_`: system default
+
+## Array Manipulation
+
+NumPy arrays offer a rich set of attributes and operation for their manipulation. Since NumPy arrays are the foundation of many higher-level libraries, data manipulation in Python is often NumPy array manipulation.
+
+### Attributes
+
+These read-only attributes can be used to retrieve information about an array:
+
+- `ndim`: number of dimensions
+- `shape`: size of each dimension
+- `size`: total size of the array (the number of elements)
+- `dtype`: data type of the array's elements
+- `itemsize`: byte size of a single element
+- `nbytes`: byte size of the entire array
+
+In general, `nbytes` is equal to `itemsize` multiplied by `size`.
+
+```python
+>>> np.random.seed(0) # for reproducable results
+>>> arr = np.random.randint(10, 100, (3, 3))
+>>> arr
+array([[54, 57, 74],
+       [77, 77, 19],
+       [93, 31, 46])
+>>> arr.ndim
+2
+>>> arr.shape
+(3, 3)
+>>> arr.size
+9
+>>> arr.dtype
+dtype('int64')
+>>> arr.itemsize
+8
+>>> arr.nbytes
+72
+>>> arr.itemsize * arr.size
+72
+```
+
+### Indexing
+
+Values of NumPy arrays can both be retrieved and modified by the means of
+indexing.
+
+The indexing of single dimension arrays works with square brackets, just like
+indexing of Python lists:
+
+- `arr[0]`: first element
+- `arr[n]`: nth element
+- `arr[-1]`: last element (first element counted from the end)
+- `arr[-3]`: third last element (third element counted from the end)
+
+For multi dimension arrays, a comma separated tuple has to be passed in square
+brackets:
+
+- `arr[0, 0]`: first element of the first dimension
+- `arr[3, 5]`: fifth element of the third dimension
+
+```python
+>>> np.random.seed(0) # for reproducable results
+>>> arr = np.random.randint(10, 100, (3, 3))
+>>> arr
+array([[54, 57, 74],
+       [77, 77, 19],
+       [93, 31, 46])
+>>> arr[0, 0]
+54
+>>> arr[1, 2]
+19
+>>> arr[-1, -1]
+46
+>>> arr[2, 2]
+46
+```
