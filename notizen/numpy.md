@@ -145,12 +145,109 @@ brackets:
 array([[54, 57, 74],
        [77, 77, 19],
        [93, 31, 46])
+
 >>> arr[0, 0]
 54
+
 >>> arr[1, 2]
 19
+
 >>> arr[-1, -1]
 46
+
 >>> arr[2, 2]
 46
+```
+
+### Slicing
+
+The slicing syntax of Python lists also works for NumPy arrays:
+
+- `[start:stop:step]`, with values omitted defaulting to:
+    - `start=0`
+    - `stop=[size of dimension]`
+    - `step=1`
+- For a negative step size, the defaults for `start` and `stop` are swapped.
+
+```python
+>>> arr = np.arange(1, 10)
+>>> arr
+array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+>>> arr[2:5] # third (inclusive) to fifth (exclusive)
+array([3, 4, 5])
+
+>>> arr[::2] # every other (beginning with first)
+array([1, 3, 5, 7])
+
+>>> arr[::-1] # reversed
+array([9, 8, 7, 6, 5, 4, 3, 2, 1])
+```
+
+If a step is indicated, two colons are required. Otherwise, step is interpreted
+as the stop.
+
+Multi-dimension arrays can be sliced by providing multiple, comma-separated
+slices:
+
+- `[start1:stop1:step1, start2:stop2:step2]`, for slicing the first and second
+  dimension.
+- Indexing and slicing can be combined in order to access individual
+  columns/rows:
+    - `[:, 0]`: all rows, first column
+    - `[0, :]`: first row, all columns
+        - `[0]`: shorthand (`:` can be omitted)
+
+```python
+>>> np.random.seed(0) # for reproducable results
+>>> arr = np.random.randint(10, 100, (3, 3))
+>>> arr
+array([[54, 57, 74],
+       [77, 77, 19],
+       [93, 31, 46])
+
+>>> arr[::2, 0:2] # columns 0 and 1 of every other row
+array([[54, 57],
+       [93, 31]])
+
+>>> arr[:, 0] # first column
+array([54, 77, 93])
+
+>>> arr[0, :] # first row
+array([54, 57, 74])
+
+>>> arr[0] # first row (shorthand)
+array([54, 57, 74])
+```
+
+Unlike Python lists, slices of NumPy arrays are _views to_ the original data,
+not _copies of_ it. To get a copy of a slice that can be modified without
+affecting the underlying array, the `copy()` method can be used. Using the
+array from above:
+
+```python
+>>> s = arr[::2, 0:2] # view on columns 0 and 1 of every other row
+>>> s
+array([[54, 57],
+       [93, 31]])
+
+>>> s[0,1] = 88
+>>> s[1,0] = 99
+>>> s
+array([[54, 88],
+       [99, 31]])
+
+>>> t = arr[1, 0:2].copy() # copy of columns 0 and 1 of the second row
+>>> t
+array([77, 77])
+
+>>> t[0] = 11
+>>> t[1] = 22
+>>> t
+array([11, 22])
+
+>>> arr
+array([[54, 88, 74],  # 88 introduced through s
+       [77, 77, 19],  # 11 and 22 missing (working on copy t)
+       [99, 31, 46]]) # 99 introduced through s
 ```
