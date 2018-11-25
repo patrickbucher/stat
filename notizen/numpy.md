@@ -251,3 +251,178 @@ array([[54, 88, 74],  # 88 introduced through s
        [77, 77, 19],  # 11 and 22 missing (working on copy t)
        [99, 31, 46]]) # 99 introduced through s
 ```
+
+### Reshaping
+
+There are two options to reshape an existing array:
+
+1. The function `reshape(size)`, which reshapes the underlying array to the
+   given size (dimension indications).
+    - The new size must match the array's size.
+    - Good: `arr.size=60`, `arr.reshape((6, 10))`, because `6*10=60`
+    - Bad: `arr.size=16`, `arr.reshape((4, 6))`, because `4*6>16`
+2. Using the slicing parameter `np.newaxis`, which converts a one-dimensional
+   to a two-dimensional array.
+    - `arr[np.newaxis, :]`: array elements as columns
+    - `arr[:, np.newaxis]`: array elements as rows
+
+Example:
+
+```python
+>>> np.arange(1, 10).reshape((3, 3))
+array([[1, 2, 3],
+       [4, 5, 6],
+       [7, 8, 9]])
+
+>>> np.arange(1, 4)[np.newaxis, :]
+array([[1, 2, 3]])
+
+>>> np.arange(1, 4)[:, np.newaxis]
+array([[1],
+       [2],
+       [3]])
+```
+
+### Concatenation
+
+The options to concatenate arrays of same and different dimensions are:
+
+1. The function `np.concatenate(arrays, axis)`, which works on arrays of the
+   same dimensions.
+    - `arrays`: a list or tuple of arrays
+    - `axis`: index of the axis, along which the concatenation takes place (0:
+      rows, 1: columns, 2: third dimension)
+2. Functions, which concatenate the given arrays of (possible) different
+   dimensions:
+    - `np.vstack(arrays)`: stack the arrays vertically
+    - `np.hstack(arrays)`: stack the arrays horizontally
+    - `np.dstack(arrays)`: stack the arrays along the third dimension
+
+Example:
+
+```python
+>>> a = np.arange(1, 5) # 1, 2, 3, 4
+>>> b = np.arange(5, 9) # 5, 6, 7, 8
+>>> np.concatenate((a, b))
+array([1, 2, 3, 4, 5, 6, 7, 8])
+
+>>> x = a.reshape((2, 2))
+>>> x
+array([[1, 2],
+       [3, 4]])
+
+>>> y = b.reshape((2, 2))
+>>> y
+array([[5, 6],
+       [7, 8]])
+
+>>> np.concatenate((x, y), axis=0) # along rows
+array([[1, 2],
+       [3, 4],
+       [5, 6],
+       [7, 8]])
+
+>>> np.vstack((x, y)) # same, but shorter
+array([[1, 2],
+       [3, 4],
+       [5, 6],
+       [7, 8]])
+
+>>> np.concatenate((x, y), axis=1) # along columns
+array([[1, 2, 5, 6],
+       [3, 4, 7, 8]])
+
+>>> np.hstack((x, y)) # same, but shorter
+array([[1, 2, 5, 6],
+       [3, 4, 7, 8]])
+
+>>> i = np.arange(1, 4).reshape((3, 1))
+>>> i
+array([[1],
+       [2],
+       [3]])
+
+>>> j = np.arange(4, 10).reshape(3, 2)
+>>> j
+array([[4, 5],
+       [6, 7],
+       [8, 9]])
+
+>>> np.hstack((i, j))
+array([[1, 4, 5],
+       [2, 6, 7],
+       [3, 8, 9]])
+
+>>> m = np.arange(1, 4)
+>>> m
+array([1, 2, 3])
+
+>>> n = np.arange(4, 10).reshape((2, 3))
+>>> n
+array([[4, 5, 6],
+       [7, 8, 9]])
+
+>>> np.vstack((m, n))
+array([[1, 2, 4],
+       [4, 5, 6],
+       [7, 8, 9]])
+```
+
+### Splitting
+
+An array split up at `N` split points will result in `N+1` arrays. As for
+reshaping and concatenation, there are two fundamental ways to split arrays:
+
+1. The function `np.split(array, splitpoints)`.
+    - `array`: an array of any dimension
+    - `splitpoints`: a list of indices
+        - a divider (positive integer value) can be used to split the array up
+          into `n` equally sized chunks
+2. Functions, which split an array along a specific dimension.
+    - `np.hsplit(array, splitpoints)`: split the array along the horizontal
+      axis
+    - `np.vsplit(array, splitpoints)`: split the array along the vertically
+      axis
+    - `np.dsplit(array, splitpoints)`: split the array along a third dimension
+
+Example:
+
+```python
+>>> a = np.arange(1, 9)
+>>> a
+array([1, 2, 3, 4, 5, 6, 7, 8])
+
+>>> np.split(a, [4]) # split at index 4 (beginning of second chunk)
+[array([1, 2, 3, 4]), array([5, 6, 7, 8])]
+
+>>> np.split(a, 2) # divide into 2 equally sized parts
+[array([1, 2, 3, 4]), array([5, 6, 7, 8])]
+
+>>> np.split(a, [2, 6]) # split at indices 2 and 6
+[array([1, 2]), array([3, 4, 5, 6]), array([7, 8])]
+
+>>> b = np.arange(1, 10).reshape((3, 3))
+>>> b
+array([[1, 2, 3],
+       [4, 5, 6],
+       [7, 8, 9]])
+
+>>> i, j = np.hsplit(b, [2]) # split off first two columns
+>>> i
+array([[1, 2],
+       [4, 5],
+       [7, 8]])
+
+>>> j
+array([[3],
+       [6],
+       [9]])
+
+>>> m, n = np.vsplit(b, [1]) # split off first row
+>>> m
+array([[1, 2, 3]])
+
+>>> n
+array([[4, 5, 6],
+       [7, 8, 9]])
+```
