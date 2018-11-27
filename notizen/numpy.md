@@ -426,3 +426,45 @@ array([[1, 2, 3]])
 array([[4, 5, 6],
        [7, 8, 9]])
 ```
+
+## Universal Functions
+
+- Loop-based operations on arrays resp. on their elements are slow, because
+  Python performs type-checks and lookups for every function calll.
+- NumPy's universal functions (UFuncs) are statically typed and compiled. They
+  can be performed on an array as a whole―and will be applied to each element.
+  This is much faster and more convenient.
+    - Loops over arrays should be rewritten in terms of UFuncs. The bigger the
+      array, the larger the gain.
+- UFuncs can be applied:
+    - to an array and a scalar value:
+        - `np.arange(1, 4) * 2 # [2, 4, 6]`
+    - to an array and another array:
+        - `np.arange(1, 4) * np.arange(7, 10) # [8, 10, 12]`
+
+### Common UFuncs
+
+Many of Python's native operators can be used as shorthands for UFuncs:
+
+| Shorthand   | UFunc             | Description         |
+|-------------|-------------------|---------------------|
+| `+`         | `np.add`          | Addition            |
+| `-`         | `np.subtract`     | Subtraction         |
+| `-` (unary) | `np.negative`     | Negative Prefix     |
+| `*`         | `np.multiply`     | Multiplication      |
+| `/`         | `np.divide`       | Division            |
+| `//`        | `np.floor_divide` | Floor Division      |
+| `**`        | `np.power`        | Exponentiation      |
+| `%`         | `np.mod`          | Modulus (remainder) |
+| `np.abs`    | np.absolute`      | Absolute value      |
+
+There are a lot of additional mathematical UFuncs:
+
+- `np.sin`/`np.arcsin`: Sine and Arcsine
+- `np.cos`/`np.arccos`: Cosine and Arcosine
+- `np.tan`/`np.arctan`: Tangents and Cotangents
+- `np.exp2`: `2^x`
+- `np.exp`: `e^x`
+- `np.log`: base-e logarithm
+- `np.log2`: base-2 logarithm
+- `np.log10`: base-10 logarithm
