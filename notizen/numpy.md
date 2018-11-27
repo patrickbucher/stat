@@ -456,7 +456,7 @@ Many of Python's native operators can be used as shorthands for UFuncs:
 | `//`        | `np.floor_divide` | Floor Division      |
 | `**`        | `np.power`        | Exponentiation      |
 | `%`         | `np.mod`          | Modulus (remainder) |
-| `np.abs`    | np.absolute`      | Absolute value      |
+| `np.abs`    | `np.absolute`     | Absolute value      |
 
 There are a lot of additional mathematical UFuncs:
 
