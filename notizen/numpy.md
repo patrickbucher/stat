@@ -468,3 +468,88 @@ There are a lot of additional mathematical UFuncs:
 - `np.log`: base-e logarithm
 - `np.log2`: base-2 logarithm
 - `np.log10`: base-10 logarithm
+
+### Advanced Features
+
+Rather than creating a new array for the return value, the result of a UFunc
+can be stored in an existing array using the `out` parameter. This also works
+with slices:
+
+```python
+>>> x = np.arange(1, 6)
+>>> x
+array([1, 2, 3, 4, 5])
+
+>>> y = np.zeros(5, dtype=np.int)
+>>> y
+array([0, 0, 0, 0, 0])
+
+>>> np.power(x, 2, out=y)
+>>> y
+array([1, 4, 9, 16, 25])
+
+>>> z = np.zeros(10)
+>>> z
+array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+>>> np.power(x, 2, out=z[::2]) # overwrite every other element
+>>> z
+array([1, 0, 4, 0, 9, 0, 16, 0, 25, 0])
+```
+
+Every UFunc comes with a `reduce` operation, which repeatedly applies an
+operation to the elements of an array until only a single result remains.
+
+```python
+>>> x = np.arange(1, 5)
+>>> x
+array([1, 2, 3, 4, 5])
+
+>>> np.add.reduce(x) # Sum: 1 + 2 + 3 + 4 + 5
+15
+
+>>> np.multiply.reduce(x) # Factorial: 1 * 2 * 3 * 4 * 5
+120
+```
+
+Instead of just storing the end results, each intermediary step can be stored
+using the `accumulate` function:
+
+```python
+>>> x = np.arange(1, 5)
+>>> x
+array([1, 2, 3, 4, 5])
+
+>>> np.add.accumulate(x)
+array([1, 3, 6, 10, 15)
+
+>>> np.multiply.accumulate(x)
+array([1, 2, 6, 24, 120])
+```
+
+The `outer` operation computes the output of all pairs of two inputs, which
+could be used to create a multiplication table, for example:
+
+```python
+>>> a = np.arange(1, 6)
+>>> a
+array([1, 2, 3, 4, 5])
+
+>>> b = np.arange(1, 9)[1::2]
+>>> b
+array([2, 4, 6, 8])
+
+>>> np.multiply.outer(b, a) # column, row
+array([[ 2,  4,  6,  8, 10],
+       [ 4,  8, 12, 16, 20],
+       [ 6, 12, 18, 24, 30],
+       [ 8, 16, 24, 32, 40]])
+```
+
+| `*` | 1 | 2  | 3  | 4  | 5  |
+|-----|---|----|----|----|----|
+| 2   | 2 | 4  | 6  | 8  | 10 |
+| 4   | 4 | 8  | 12 | 16 | 20 |
+| 6   | 6 | 12 | 18 | 24 | 30 |
+| 8   | 8 | 16 | 24 | 32 | 40 |
+
