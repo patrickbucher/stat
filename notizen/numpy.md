@@ -553,3 +553,69 @@ array([[ 2,  4,  6,  8, 10],
 | 6   | 6 | 12 | 18 | 24 | 30 |
 | 8   | 8 | 16 | 24 | 32 | 40 |
 
+## Aggregations
+
+Aggregations reduce an array or one of its dimensions to a single value. In
+contrast to Python's built-in aggregate functions (`sum`, `min`, `max`),
+NumPy's implementations can operate on multi-dimensional arrays―and are much
+faster.
+
+- Aggregate functions take an optional `axis` parameter, which describes _the
+  array dimension to be collapsed_:
+    - `axis=0`: collapse columns
+    - `axis=1`: collapse rows
+
+```python
+>>> a = np.random.randint(1, 10, size=(3, 4))
+>>> a
+array([[7, 8, 5, 5],
+       [6, 1, 7, 2],
+       [7, 2, 8, 8]])
+
+>>> a.sum()
+66
+
+>>> a.sum(axis=0)
+array([20, 11, 20, 16])
+
+>>> a.sum(axis=1)
+array([25, 16, 25])
+```
+
+All aggregate functions can be called using the syntax `np.function(array,
+[parameters])`. Except for `np.median` and `np.percentile`, the following
+functions can be called directly on the array using the syntax
+`array.function([parameters])`.
+
+| Function             | Returns                         |
+|----------------------|---------------------------------|
+| `np.sum`             | sum                             |
+| `np.prod`            | product                         |
+| `np.min`             | minimum value                   |
+| `np.max`             | maximum value                   |
+| `np.argmin`          | index of minimum value          |
+| `np.argmax`          | index of maximum value          |
+| `np.mean`            | mean («average») value          |
+| `np.median`          | median («middle») value         |
+| `np.var`             | variance                        |
+| `np.std`             | standard deviation              |
+| `np.percentile(q=n)` | nth percentile, n in `[0, 100]` |
+| `np.any`             | is _any_ value true?            |
+| `np.all`             | are _all_ values true?          |
+
+Special NaN-aware functions exist for every function (execpt for the boolean
+functions `np.any` and `np.all`). They have the prefix `nan` and can only be
+called on `nd`, not directly on the array. Since NaN belongs to the IEEE-754
+standard, arrays containing NaN must have the type float or double.
+
+```python
+>>> a = np.array([1, 2, 3, np.NAN, 5])
+>>> a
+array([ 1.,  2.,  3., nan,  5.])
+
+>>> np.sum(a)
+nan
+
+>>> np.nansum(a)
+11.0
+```
