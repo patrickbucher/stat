@@ -619,3 +619,80 @@ nan
 >>> np.nansum(a)
 11.0
 ```
+
+## Broadcasting
+
+Broadcasting is a set of rules for applying binary UFuncs (addition,
+multiplication, etc.) on arrays of different sizes and/or dimensions.
+
+**Rule 1**: If the arrays have a different number of dimensions, the _shape_ of
+the array with fewer dimensions is padded with ones on the left.
+
+```python
+>>> a = np.ones(9).reshape(3, 3)
+>>> a
+array([[1., 1., 1.],
+       [1., 1., 1.],
+       [1., 1., 1.]])
+
+>>> b = np.arange(1, 4)
+>>> b
+array([1, 2, 3])
+
+>>> a.shape
+(3, 3)
+
+>>> b.shape
+(3,)
+```
+
+**Result**: The shape of `b` is one-padded on the left: `(3,)` → `(1, 3)`.
+Thus, `array([1, 2, 3])` becomes `array([[1, 2, 3]])`.
+
+**Rule 2**: If the shape of the arrays does not match in any dimension, the
+array with a shape of one is stretched in that dimension to match the other
+shape.
+
+**Result**: The rows of `b` are stretched (i.e. repeated), the shape changes
+again: `(1, 3)` → `(3, 3)`. Thus, `array([[1, 2, 3]])` becomes:
+
+```python
+array([[1, 2, 3].
+       [1, 2, 3],
+       [1, 2, 3]])
+```
+
+This is only a _conceptual_ transformation, no memory is wasted when stretching!
+
+3. If the dimensions neither match nor are equal to one, an error is raised.
+
+```python
+>>> x = np.ones(6).reshape(2, 3)
+>>> x
+array([[1., 1., 1.],
+       [1., 1., 1.]])
+
+>>> y = np.arange(1, 3)
+>>> y
+array([1, 2])
+
+>>> x.shape
+(2, 3)
+
+>>> y.shape
+(2,)
+```
+
+**Result**: Error.
+
+In order to perform binary operations on incompatible arrays (according these
+broadcasting rules), the arrays can be re-shaped manually:
+
+```ipython
+>>> x + y
+ValueError: operands could not be broadcast together with shapes (2,3) (2,)
+
+>>> x + y.reshape(2, 1)
+array([[2., 2., 2.],
+       [3., 3., 3.]])
+```
