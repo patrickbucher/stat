@@ -736,7 +736,7 @@ array([[ True,  True, False],
 ```
 
 The number of true values can be counted using the `np.count_nonzero` or the
-`np.sum` function, which counts `False` as 0 and `True as 1. Using the array
+`np.sum` function, which counts `False` as 0 and `True` as 1. Using the array
 `a` from above:
 
 ```python
