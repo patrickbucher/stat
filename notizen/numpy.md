@@ -696,3 +696,123 @@ ValueError: operands could not be broadcast together with shapes (2,3) (2,)
 array([[2., 2., 2.],
        [3., 3., 3.]])
 ```
+
+## Boolean Arrays
+
+Python's comparison operators have NumPy equivalents. They are applied to each
+element and return a boolean array, indicating the result of every comparison:
+
+| Shorthand | UFunc              | Description           |
+|-----------|--------------------|-----------------------|
+| `==`      | `np.equal`         | equal                 |
+| `!=`      | `np.not_equal`     | not equal             |
+| `<`       | `np.less`          | less than             |
+| `>`       | `np.great`         | greater than          |
+| `<=`      | `np.less_equal`    | less than or equal    |
+| `>=`      | `np.greater_equal` | greater than or equal |
+
+```python
+>>> a = np.random.randint(1, 10, size=(3, 3))
+>>> a
+array([[3, 4, 6],
+       [7, 4, 2],
+       [3, 6, 5]])
+
+>>> a == 5
+array([[False, False, False],
+       [False, False, False],
+       [False, False,  True]])
+
+>>> np >= 5
+array([[False, False,  True],
+       [ True, False, False],
+       [False,  True,  True]])
+
+
+>>> np.less(a, 5)
+array([[ True,  True, False],
+       [False,  True,  True],
+       [ True, False, False]])
+```
+
+The number of true values can be counted using the `np.count_nonzero` or the
+`np.sum` function, which counts `False` as 0 and `True as 1. Using the array
+`a` from above:
+
+```python
+>>> b = a >= 5
+>>> b
+array([[False, False,  True],
+       [ True, False, False],
+       [False,  True,  True]])
+
+>>> np.count_nonzero(b)
+4
+
+>>> np.sum(b)
+4
+
+>>> np.count_nonzero(b, axis=0)
+array([1, 1, 2])
+
+>>> np.sum(b, axis=1)
+array([1, 1, 2])
+```
+
+### Bitmasks
+
+Boolean arrays can be used for indexing, where every `True` item of the index
+array is returned:
+
+```python
+>>> x = np.random.randint(1, 100, size=(4, 4))
+>>> x
+array([[58, 26, 64,  3],
+       [91, 64, 44, 31],
+       [14, 81, 77,  8],
+       [64, 42, 56, 37]])
+
+>>> above_mean = (x > x.mean())
+>>> above_mean
+array([[ True, False,  True, False],
+       [ True,  True, False, False],
+       [False,  True,  True, False],
+       [ True, False,  True, False]])
+
+>>> x[above_mean]
+array([58, 64, 91, 64, 81, 77, 64, 56])
+```
+
+Selection criteria can be combined using the bitwise operands, which are
+shorthand for NumPy's element-wise logical UFuncs:
+
+| Shorthand | UFunc            | Description  |
+|-----------|------------------|--------------|
+| `&`       | `np.bitwise_and` | and          |
+| `|`       | `np.bitwise_or`  | or           |
+| `^`       | `np.bitwise_xor` | exclusive or |
+| `~`       | `np.bitwise_not` | not          |
+
+Using the arrays `x` and `above_mean` from above:
+
+```python
+>>> even = (x % 2 == 0)
+>>> even
+array([[ True,  True,  True, False],
+       [False,  True,  True, False],
+       [ True, False, False,  True],
+       [ True,  True,  True, False]])
+
+>>> x[even & above_mean]
+array([58, 64, 64, 64, 56])
+
+>>> x[np.bitwise_or(even, above_mean)]
+array([58, 26, 64, 91, 64, 44, 14, 81, 77,  8, 64, 42, 56])
+
+>>> odd = np.bitwise_not(even)
+>>> odd
+array([[False, False, False,  True],
+       [ True, False, False,  True],
+       [False,  True,  True, False],
+       [False, False, False,  True]])
+```
