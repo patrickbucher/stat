@@ -789,7 +789,7 @@ shorthand for NumPy's element-wise logical UFuncs:
 | Shorthand | UFunc            | Description  |
 |-----------|------------------|--------------|
 | `&`       | `np.bitwise_and` | and          |
-| `|`       | `np.bitwise_or`  | or           |
+| `\|`      | `np.bitwise_or`  | or           |
 | `^`       | `np.bitwise_xor` | exclusive or |
 | `~`       | `np.bitwise_not` | not          |
 
