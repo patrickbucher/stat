@@ -266,8 +266,6 @@ There are two options to reshape an existing array:
     - `arr[np.newaxis, :]`: array elements as columns
     - `arr[:, np.newaxis]`: array elements as rows
 
-Example:
-
 ```python
 >>> np.arange(1, 10).reshape((3, 3))
 array([[1, 2, 3],
@@ -297,8 +295,6 @@ The options to concatenate arrays of same and different dimensions are:
     - `np.vstack(arrays)`: stack the arrays vertically
     - `np.hstack(arrays)`: stack the arrays horizontally
     - `np.dstack(arrays)`: stack the arrays along the third dimension
-
-Example:
 
 ```python
 >>> a = np.arange(1, 5) # 1, 2, 3, 4
@@ -384,8 +380,6 @@ reshaping and concatenation, there are two fundamental ways to split arrays:
     - `np.vsplit(array, splitpoints)`: split the array along the vertically
       axis
     - `np.dsplit(array, splitpoints)`: split the array along a third dimension
-
-Example:
 
 ```python
 >>> a = np.arange(1, 9)
@@ -815,4 +809,72 @@ array([[False, False, False,  True],
        [ True, False, False,  True],
        [False,  True,  True, False],
        [False, False, False,  True]])
+```
+
+## Fancy Indexing
+
+Arrays can be indexed using arrays of indices to access multiple array elements
+at once. 
+```python
+>>> x = np.arange(5, 85, 5).reshape((4, 4))
+>>> x
+array([[ 5, 10, 15, 20],
+       [25, 30, 35, 40],
+       [45, 50, 55, 60],
+       [65, 70, 75, 80]])
+
+>>> x[[3, 1, 2], [2, 3, 1]] # select items (3,2), (1,3) and (2,1)
+array([75, 40, 50])
+```
+If array indices with different shapes are used, the index arrays are being
+broadcasted. The result of the index operation is shaped by the _broadcasted
+index array_, not by the array being indexed. Given the array `x` from above:
+
+```python
+>>> rows = np.array([3, 1, 2])[:, np.newaxis)
+>>> rows
+array([[3],
+       [1],
+       [2]])
+
+>>> cols = np.array([2, 3, 1]
+>>> cols
+array([2, 3, 1])
+
+>>> x[rows, cols]
+array([[75, 80, 70],
+       [35, 40, 30],
+       [55, 60, 50]])
+```
+
+The broadcasting of the index arrays is done like this:
+
+|   | 2   | 3   | 1   |
+|---|-----|-----|-----|
+| 3 | 3,2 | 3,3 | 3,1 |
+| 1 | 1,2 | 1,3 | 1,1 |
+| 2 | 2,2 | 2,3 | 2,1 |
+
+And the resulting array of the indexing operation looks like this:
+
+|   | 2  | 3  | 1  |
+|---|----|----|----|
+| 3 | 75 | 80 | 70 |
+| 1 | 35 | 40 | 30 |
+| 2 | 55 | 60 | 50 |
+
+Array indices can be combined with scalar indices, slicing and masking:
+
+```python
+>>> x[2, [1, 0, 3]] # scalar and array index
+array([50, 45, 60])
+
+>>> x[2:3, [1, 0, 3]] # slice and array index
+array([50, 45, 60])
+
+>>> rows = np.array([2, 3])[:, np.newaxis]
+>>> cols = np.array([False, True, False, True])
+>>> x[rows, cols] # array index and mask
+array([[50, 60],
+       [70, 80]])
 ```
