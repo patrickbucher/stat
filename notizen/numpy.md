@@ -54,6 +54,9 @@ passed.
   mean and standard deviation
 - `np.random.randint(from, to, size)`: random integers in the interval
   `[from,to)` (inclusive/exclusive)
+- `np.random.choice(a, size, replace, p)`: random values from the array `a` or
+  up to the upper bound value `a` with (`replace=True`) or without
+  (`replace=False`) replacement and an optional array of probabilities `p`
 - `np.eye(n)`: identity matrix with n rows and columns (values at indices with
   equal row/column index are 1)
 - `np.empty(size)`: uninitialized array, values from current memory content
@@ -826,6 +829,9 @@ array([[ 5, 10, 15, 20],
 >>> x[[3, 1, 2], [2, 3, 1]] # select items (3,2), (1,3) and (2,1)
 array([75, 40, 50])
 ```
+
+### Broadcasting
+
 If array indices with different shapes are used, the index arrays are being
 broadcasted. The result of the index operation is shaped by the _broadcasted
 index array_, not by the array being indexed. Given the array `x` from above:
@@ -877,4 +883,49 @@ array([50, 45, 60])
 >>> x[rows, cols] # array index and mask
 array([[50, 60],
        [70, 80]])
+```
+
+### Assignment
+
+Fancy indexing can be used for assignments, too:
+
+```python
+>>> x = np.arange(10)
+>>> x
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+>>> x[x % 2 == 0] = 0 # set all even values to zero
+>>> x
+array([0, 1, 0, 3, 0, 5, 0, 7, 0, 9])
+```
+
+However, the behaviour can be unexpected if index values are used multiple
+times:
+
+```python
+>>> x = np.zeros(3)
+>>> x
+array([0, 0, 0])
+
+>>> i = [0, 1, 1, 2, 2, 2]
+>>> x[i] += 1
+>>> x
+array([1, 1, 1])
+```
+
+The values at indices 1 and 2 haven't been incremented three times, because the
+value of `x[i] + 1` is evaluated once at the beginning and then used multiple
+times. For repetitions, NumPy's functions have a `at` method, which performs
+unbuffered operations, i.e. results will be recalculated for every index
+element:
+
+```python
+>>> x = np.zeros(3)
+>>> x
+array([0, 0, 0])
+
+>>> i = [0, 1, 1, 2, 2, 2]
+>>> np.add.at(x, i, 1)
+>>> x
+array([1, 2, 3])
 ```
