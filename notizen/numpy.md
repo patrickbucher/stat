@@ -929,3 +929,82 @@ array([0, 0, 0])
 >>> x
 array([1, 2, 3])
 ```
+
+## Sorting
+
+NumPy offers more efficient ways of sorting arrays than Python's native
+`sort()` function. An array can be sorted using the `np.sort()` function, which
+returns the sorted array:
+
+```python
+>>> x = np.array([5, 2, 4, 1, 3])
+>>> np.sort(x)
+array([1, 2, 3, 4, 5])
+```
+
+By default, NumPy uses the quicksort algorithm. Other algorithms can be used by
+setting the `kind` parameter. Options are: `quicksort`, `mergesort`, `heapsort`
+and `stable`.
+
+An array can also be sorted in-place, using the array's `sort()` method:
+
+```python
+>>> x = np.array([5, 2, 4, 1, 3])
+>>> x.sort()
+>>> x
+array([1, 2, 3, 4, 5])
+```
+
+The `np.argsort()` function sorts an array and returns an array of indices
+denoting the array's order. The returned array can be used for fancy indexing:
+
+```python
+>>> x = np.array([5, 2, 4, 1, 3])
+>>> i = np.argsort(x)
+>>> i
+array([3, 1, 4, 2, 0])
+
+>>> x[i]
+array([1, 2, 3, 4, 5])
+```
+
+Arrays can be sorted along rows and columns using the `axis` argument, which
+defines _along_ (_not within!_) which axis the comparison and swapping is
+performed (0: along rows, 1: along columns):
+
+```python
+>>> x = np.random.choice(10, (3, 3), replace=False)
+>>> x
+array([[7, 1, 9],
+       [8, 0, 4],
+       [2, 3, 6]])
+
+>>> np.sort(x, axis=0) # along rows/within columns
+array([[2, 0, 4],
+       [7, 1, 6],
+       [8, 3, 9]])
+
+>>> np.sort(x, axis=1) # along columns/within rows
+array([[1, 7, 9],
+       [0, 4, 8],
+       [2, 3, 6]])
+```
+
+Arrays can be sorted _partially_, i.e. the array is split into two sections,
+with the left partition containing all smaller values than the right partition.
+Arrays can be sorted partially using `np.partition()`, which requires the `kth`
+parameter denoting the size of the left partition (`K` elements):
+
+```python
+>>> x = np.random.choice(10, 10, replace=False)
+>>> x
+array([9, 1, 6, 0, 8, 5, 3, 2, 7, 4])
+
+>>> np.partition(x, 3)
+array([1, 0, 2, 3, 4, 5, 6, 7, 8, 9])
+```
+
+Within the partitions, the elements are in arbitrary order. Partial sorting can
+also be done by row or column using the `axis` argument. To return the array of
+partially sorted indices, the function `np.argpartition()` can be used
+analogous to `np.argsort()`.
