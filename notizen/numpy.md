@@ -21,10 +21,10 @@ import numpy as np
 NumPy arrays can be created from Python lists:
 
 ```python
-ints = np.array([2, 4, 6, 8]) # integer array
-floats = np.array([2, 4, 6, 8.1]) # upcast to float because of 8.1
-floats = np.array([2, 4, 6, 8], dtype='float') # with explicit type parameter
-ints = np.array([1.1, 2.2, 3.3], dtype='int') # with explicit type parameter
+>>> ints = np.array([2, 4, 6, 8]) # integer array
+>>> floats = np.array([2, 4, 6, 8.1]) # upcast to float because of 8.1
+>>> floats = np.array([2, 4, 6, 8], dtype='float') # with explicit type parameter
+>>> ints = np.array([1.1, 2.2, 3.3], dtype='int') # with explicit type parameter
 ```
 
 NumPy arrays can be multi-dimensional:
@@ -84,7 +84,9 @@ Common numeric types are:
 
 ## Array Manipulation
 
-NumPy arrays offer a rich set of attributes and operation for their manipulation. Since NumPy arrays are the foundation of many higher-level libraries, data manipulation in Python is often NumPy array manipulation.
+NumPy arrays offer a rich set of attributes and operation for their
+manipulation. Since NumPy arrays are the foundation of many higher-level
+libraries, data manipulation in Python is often NumPy array manipulation.
 
 ### Attributes
 
