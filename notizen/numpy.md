@@ -1008,3 +1008,99 @@ Within the partitions, the elements are in arbitrary order. Partial sorting can
 also be done by row or column using the `axis` argument. To return the array of
 partially sorted indices, the function `np.argpartition()` can be used
 analogous to `np.argsort()`.
+
+## Structured Arrays
+
+Storing heterogeneous data, say names and wages of employees, in different
+arrays of the same size is error prone: The relation of the data is not
+obvious, and sorting the arrays mixes up the entries. NumPy offers structured
+arrays, which can be defined with the `dtype` parameter using a compound data
+type specification in three ways:
+
+1) using the dictionary method, indicating the field names and formats
+separately in two tuples:
+
+```python
+dtype={'names': ('name', 'age', 'salary'),
+       'formats': ('U20', 'u1', 'f4')}
+```
+
+2) using a list of tuples, defining the field name and its type together in one
+tuple per field:
+
+```python
+dtype=np.dtype([('name', 'U20'),
+                ('age', 'u1'),
+                ('salary', 'f4')])
+```
+
+3) without specifying the field names, using automatic names from `f0` to `fn`,
+and defining the types as a comma-separated string:
+
+```python
+dtype=np.dtype('U20,u1,f4')
+```
+
+A type indicator consists of three parts:
+
+1. the endianness (optional): `<` for little endian, `>` for big endian
+    - `<f4`: little endian float of four bytes
+    - `>i8`: big endian integer of eight bytes
+2. the data type (see the next table)
+3. the size of the field _in bytes_ (not in bits)
+
+| Indicator      | Type              | Example | Equivalent              |
+|----------------|-------------------|---------|-------------------------|
+| `'b'`          | byte              | `'b'`   |                         |
+| `'i'`          | signed integer    | `'i4'`  | `np.int32`              |
+| `'u'`          | unsigned integer  | `'u1'`  | `np.uint8`              |
+| `'f'`          | floating point    | `'f8'`  | `np.float64`            |
+| `'c'`          | complex number    | `'c16'` | `np.complex128`         |
+| `'S'` or `'a'` | string (ASCII)    | `'S5'`  |                         |
+| `'U'`          | unicode string    | `'U10'` | `np.dtype(np.str_, 10)` |
+| `'V'`          | raw data (`void`) | `'V'`   | `np.void`               |
+
+The fields can be accessed by row, by column, by combining row and column, and
+also using bit masks:
+
+```python
+>>> employees = np.zeros(3, dtype=np.dtype([('name', 'S10'), ('wage', 'f8')]))
+>>> employees['name'] = ['Dilbert', 'Wally', 'Alice']
+>>> employees['wage'] = [120000.00, 80000.00, 110000.00]
+>>> employees
+array([(b'Dilbert', 120000.),
+       (b'Wally', 80000.),
+       (b'Alice', 110000.)],
+       dtype=[('name', 'S10'), ('wage', '<f8')])
+
+>>> employees[employees['wage'] > 100000]]['name']
+array([b'Dilbert', b'Alice'], dtype='|S10')
+```
+
+NumPy also allows storing arrays in fields of structured arrays, which can be
+achieved by providing an optional size indicator to every field definition:
+
+```python
+>>> players = np.zeros(3, dtype=np.dtype([('name', 'U20'),
+                                          ('pattern', 'S1', (3, 3))]))
+>>> players[0]['name'] = 'John'
+>>> glider = [[' ', 'O', ' '],
+              [' ', ' ', 'O'],
+              ['O', 'O', 'O']]
+>>> players[0]['pattern'] = glider
+```
+
+NumPy offers the type `np.recarray`, which allows the individual fields to be
+accessed with dot notation instead of array indices:
+
+```python
+>>> payroll = employees.view(np.recarray)
+>>> payroll.name
+array([b'Dilbert', b'Wally', b'Alice'], dtype='|S10')
+```
+
+The syntax is more convenient, but the performance of the access is lower.
+
+NumPy's structured arrays are a very efficient way to store structured data.
+However, the Pandas library offers much more functionality for working with
+structured data.
