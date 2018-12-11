@@ -118,7 +118,7 @@ included:
 ```python
 >>> payroll = pd.Series({'Dilbert': 120000, 'Wally': 80000, 'Alice': 110000})
 >>> payroll['Dilbert':'Wally']
-lbert    120000
+Dilbert    120000
 Wally     80000
 dtype: int64
 ```
