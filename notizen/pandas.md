@@ -122,3 +122,95 @@ Dilbert  120000
 Wally     80000
 dtype: int64
 ```
+
+## DataFrame
+
+A Pandas `DataFrame` can be understood in terms of other data structures from
+two perspectives:
+
+1. As a generalization of a NumPy array of two dimensions, with row indices and
+   column names being flexible.
+    - NumPy arrays are indexed as `arr[row, column]`: row first, column second.
+    - Pandas `DataFrame`s are indexed as `df[column][row]`: column first, row
+      of the `Series` second.
+2. As a specialization of a Python dictionary that maps a column name (key) to
+   a `Series` of column data (value).
+
+Generally speaking, a `DataFrame` is a sequence of `Series` sharing the index
+value. Important attributes are:
+
+- `columns`: returns an `Index` object (column names)
+- `index`: returns the index labels (row names)
+
+### Creation
+
+A Pandas `DataFrame` can be created from `Series`, dictionaries and NumPy arrays.
+
+If a single `Series` is provided, an optional column name for those values can
+be defined in a list:
+
+```python
+>>> s = pd.Series([1, 2, 3])
+>>> pd.DataFrme(s, columns=['values'])
+   values
+0       1
+1       2
+2       3
+```
+
+If a list of dictionaries is provided, each dictionary is mapped to a row.
+Missing entries of heterogeneous dictionaries are filled up with `NaN` in the
+resulting `DataFrame`:
+
+```python
+>>> pd.DataFrame([{'a': 1, 'b': 2}, {'a': 5, 'c': 4}])
+   a    b    c
+0  1  2.0  NaN
+1  5  NaN  4.0
+```
+
+If a dictionary of `Series` is provided, each `Series` becomes a column with
+its key mapped as the column name:
+
+```python
+>>> s1 = pd.Series([2, 4, 6, 8])
+>>> s2 = pd.Series[(3, 6, 9, 12])
+>>> pd.DataFrame({'two': s1, 'three': s2})
+   two  three
+0    2      3
+1    4      6
+2    6      9
+3    8     12
+```
+
+If a two-dimensional NumPy array is provided, the numeric column and row
+indices from the array are used, but can be set using the optional `columns`
+and `index` parameters:
+
+```python
+>>> arr = np.arange(1, 10).reshape(3, 3)
+>>> pd.DataFrame(arr)
+   0  1  2
+0  1  2  3
+1  4  5  6
+2  7  8  9
+
+>>> pd.DataFrame(arr, columns=['A', 'B', 'C'], index=[1, 2, 3])
+   A  B  C
+1  1  2  3
+2  4  5  6
+3  7  8  9
+```
+
+If a structured NumPy array is provided, the field names serve as column names:
+
+```python
+>>> employees = np.zeros(3, dtype=np.dtype([('name', 'S10'), ('wage', 'f8')]))
+>>> employees['name'] = ['Dilbert', 'Wally', 'Alice']
+>>> employees['wage'] = [120000.00, 80000.00, 110000.00]
+>>> pd.DataFrame(employees)
+         name      wage
+0  b'Dilbert'  120000.0
+1    b'Wally'   80000.0
+2    b'Alice'  110000.0
+```
