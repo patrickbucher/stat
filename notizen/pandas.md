@@ -92,7 +92,7 @@ a    1
 dtype: int64
 ```
 
-### Access
+### Access: Indexing and Selection
 
 The elements of a `Series` can be accessed using indexing and slicing:
 
@@ -122,6 +122,98 @@ Dilbert  120000
 Wally     80000
 dtype: int64
 ```
+
+Even though a non-numeric is used, a `Series` can also be sliced using a
+implicit index. Here, the upper bound is excluded:
+
+```python
+>>> payroll[0:2]
+Dilbert    120000
+Wally       80000
+dtype: int64
+```
+
+The elements of a `Series` can also be accessed through the means of masking
+and fancy indexing:
+
+```python
+>>> payroll[(payroll >= 100000) & (payroll <= 150000)]
+Dilbert    120000
+Alice      110000
+dtype: int64
+
+>>> payroll[['Alice', 'Dilbert']]
+Alice      110000
+Dilbert    120000
+dtype: int64
+```
+
+Python's native dictionary expressions are also supported:
+
+```python
+>>> 'Dilbert' in payroll
+True
+
+>>> 'Asok' in payroll
+False
+
+>>> payroll.keys()
+Index(['Dilbert', 'Wally', 'Alice'], dtype='object')
+
+>>> list(payroll.items())
+[('Dilbert', 120000), ('Wally', 80000), ('Alice', 110000)]
+
+>>> payroll['Wally'] = 90000 # modify existing entry
+>>> payroll['Asok']  = 12000 # add a new entry
+```
+
+### Explicit and Implicit Indexing
+
+When using a explicit integer index, indexing operations make use of the
+explicit indices (the actual index values provided), but slicing operations use
+the implicit indices (the items ordinal numbers). This can be confusing:
+
+```python
+>>> ratings = pd.Series([2.3, 3.1, 3.9, 4.2, 4.8], index=[10, 20, 30, 40, 50])
+>>> ratings[10] # explicit index
+2.3
+
+>>> ratings[1:3] # implicit index
+20    3.1
+30    3.9
+dtype: float64
+```
+
+In order to reduce that confusion, a `Series` offers two attributes to access
+the indices:
+
+- `loc`: the explicit index
+- `iloc`: the implicit index
+
+```python
+>>> ratings.loc[10]
+2.3
+
+>>> ratings.loc[10:30] # inclusive explicit indices from 10 to 30
+10    2.3
+20    3.1
+30    3.9
+dtype: float64
+
+
+>>> ratings.iloc[0]
+2.3
+
+>>> ratings.iloc[0:3] # exclusive implicit indices from 0 to 3
+10    2.3
+20    3.1
+30    3.9
+dtype: float64
+```
+
+According to the [Zen of Python](https://www.python.org/dev/peps/pep-0020/)
+(«Explicit is better than implicit.»), slicing and indexing on `Series` using a
+integer index should be done using the `loc` and `iloc` attributes,
 
 ## DataFrame
 
