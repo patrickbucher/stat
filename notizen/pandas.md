@@ -307,75 +307,6 @@ If a structured NumPy array is provided, the field names serve as column names:
 2    b'Alice'  110000.0
 ```
 
-## Index
-
-The Pandas `Index` is an immutable array/a ordered (multi)set that is used both
-for the indexing of `Series` and `DataFrame`.
-
-An `Index` can be created from a list:
-
-```python
->>> pd.Index([1, 2, 3, 4, 5])
-Int64Index([1, 2, 3, 4, 5], dtype='int64')
-```
-
-The elements of the `Index` can be accessed like list entries, i.e. by a single
-index and using slicing:
-
-```python
->>> idx = pd.Index([1, 2, 3, 4, 5])
->>> idx[2]
-3
-
->>> idx[0:2]
-Int64Index([1, 2], dtype='int64')
-
->>> idx[::2]
-Int64Index([1, 3, 5], dtype='int64')
-```
-
-An `Index` is immutable, which is important when they are shared between
-different `DataFrame`s and `Series`:
-
-```python
->>> idx[2] = 6
-TypeError: Index does not support mutable operations
-```
-
-Like Python's native set, `Index` supports set operations like intersection,
-union and difference:
-
-```python
->>> idxA.intersection(idxB)
-Int64Index([1, 3, 5], dtype='int64')
-
->>> idxA.union(idxB)
-Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
-
->>> idxA.difference(idxB)
-Int64Index([7, 9], dtype='int64')
-
->>> idxB.difference(idxA)
-Int64Index([2, 4], dtype='int64')
-
->>> idxA.symmetric_difference(idxB)
-Int64Index([2, 4, 7, 9], dtype='int64')
-```
-
-Union, intersection and symmetric difference can be expressed by the means of
-operators:
-
-```python
->>> idxA & idxB # intersection
-Int64Index([1, 3, 5], dtype='int64')
-
->>> idxA | idxB # union
-Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
-
->>> idxA ^ idxB # symmetric difference
-Int64Index([2, 4, 7, 9], dtype='int64')
-```
-
 ### Access: Indexing and Selection
 
 The `DataFrame` for the following examples:
@@ -491,4 +422,73 @@ Switzerland   8236303  205.923019
                pop      area
 Germany   80594016    348672
 Russia   142257520  16377742
+```
+
+## Index
+
+The Pandas `Index` is an immutable array/a ordered (multi)set that is used both
+for the indexing of `Series` and `DataFrame`.
+
+An `Index` can be created from a list:
+
+```python
+>>> pd.Index([1, 2, 3, 4, 5])
+Int64Index([1, 2, 3, 4, 5], dtype='int64')
+```
+
+The elements of the `Index` can be accessed like list entries, i.e. by a single
+index and using slicing:
+
+```python
+>>> idx = pd.Index([1, 2, 3, 4, 5])
+>>> idx[2]
+3
+
+>>> idx[0:2]
+Int64Index([1, 2], dtype='int64')
+
+>>> idx[::2]
+Int64Index([1, 3, 5], dtype='int64')
+```
+
+An `Index` is immutable, which is important when they are shared between
+different `DataFrame`s and `Series`:
+
+```python
+>>> idx[2] = 6
+TypeError: Index does not support mutable operations
+```
+
+Like Python's native set, `Index` supports set operations like intersection,
+union and difference:
+
+```python
+>>> idxA.intersection(idxB)
+Int64Index([1, 3, 5], dtype='int64')
+
+>>> idxA.union(idxB)
+Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
+
+>>> idxA.difference(idxB)
+Int64Index([7, 9], dtype='int64')
+
+>>> idxB.difference(idxA)
+Int64Index([2, 4], dtype='int64')
+
+>>> idxA.symmetric_difference(idxB)
+Int64Index([2, 4, 7, 9], dtype='int64')
+```
+
+Union, intersection and symmetric difference can be expressed by the means of
+operators:
+
+```python
+>>> idxA & idxB # intersection
+Int64Index([1, 3, 5], dtype='int64')
+
+>>> idxA | idxB # union
+Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
+
+>>> idxA ^ idxB # symmetric difference
+Int64Index([2, 4, 7, 9], dtype='int64')
 ```
