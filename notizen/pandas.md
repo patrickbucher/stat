@@ -375,3 +375,120 @@ Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
 >>> idxA ^ idxB # symmetric difference
 Int64Index([2, 4, 7, 9], dtype='int64')
 ```
+
+### Access: Indexing and Selection
+
+The `DataFrame` for the following examples:
+
+```python
+>>> population = {
+... 'USA': 326625792,
+... 'Russia': 142257520,
+... 'Germany': 80594016,
+... 'Switzerland': 8236303
+... }
+
+>>> area = {
+... 'USA': 9147593,
+... 'Russia': 16377742,
+... 'Germany': 348672,
+... 'Switzerland': 39997
+... }
+
+>>> data = pd.DataFrame({'pop': population, 'area': area})
+>>> data
+                   pop      area
+Germany       80594016    348672
+Russia       142257520  16377742
+Switzerland    8236303     39997
+USA          326625792   9147593
+```
+
+Individual columns can be accessed either dictionary-style or attribute-style,
+however the latter only works for columns with a string index that isn't used
+for any other `DataFrame` attribute:
+
+```python
+>>> data['area']
+Germany          348672
+Russia         16377742
+Switzerland       39997
+USA             9147593
+Name: area, dtype: int64
+
+>>> data.area
+Germany          348672
+Russia         16377742
+Switzerland       39997
+USA             9147593
+Name: area, dtype: int64
+
+>>> data['area'] is data.area
+True
+
+>>> data['pop'] is data.pop
+False # pop is a method of DataFrame!
+```
+
+For assignments, only dictionary-style access works (on the left side):
+
+```python
+>>> data['density'] = data['pop'] / data.area
+>>> data
+                   pop      area     density
+Germany       80594016    348672  231.145650
+Russia       142257520  16377742    8.686028
+Switzerland    8236303     39997  205.923019
+USA          326625792   9147593   35.706201
+```
+
+The raw, underlying multi-dimensional array of data of a `DataFrame` can be
+accessed using the `value` attribute, which supports array-style indexing:
+
+```python
+>>> data.values
+array([[8.05940160e+07, 3.48672000e+05, 2.31145650e+02],
+       [1.42257520e+08, 1.63777420e+07, 8.68602766e+00],
+       [8.23630300e+06, 3.99970000e+04, 2.05923019e+02],
+       [3.26625792e+08, 9.14759300e+06, 3.57062007e+01]])
+
+>>> data.values[0, 0]
+80594016.0
+```
+
+A transposed version of the `DataFrame` (which rows and columns swapped) can be
+accessed using the `T` attribute:
+
+```python
+>>> data.T
+              Germany        Russia   Switzerland           USA
+pop      8.059402e+07  1.422575e+08  8.236303e+06  3.266258e+08
+area     3.486720e+05  1.637774e+07  3.999700e+04  9.147593e+06
+density  2.311456e+02  8.686028e+00  2.059230e+02  3.570620e+01
+```
+
+A `DataFrame` offers different index attributes:
+
+- `loc`: explicit index to access values by column and row _names_
+    - inclusive upper bound
+    - supports name based slicing, masking, fancy indexing
+- `iloc`: implicit index to access values by column and row _numbers_
+    - zero-based, exclusive upper bound
+    - supports row and column access by ordinal numbers
+
+```python
+>>> data.loc['Germany':'Russia', 'pop':'area']
+               pop      area
+Germany   80594016    348672
+Russia   142257520  16377742
+
+>>> data.loc[data.density > 100, ['pop', 'density']]
+                  pop     density
+Germany      80594016  231.145650
+Switzerland   8236303  205.923019
+
+>>> data.iloc[0:2, 0:2]
+               pop      area
+Germany   80594016    348672
+Russia   142257520  16377742
+```
