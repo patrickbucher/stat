@@ -492,3 +492,66 @@ Int64Index([1, 2, 3, 4, 5, 7, 9], dtype='int64')
 >>> idxA ^ idxB # symmetric difference
 Int64Index([2, 4, 7, 9], dtype='int64')
 ```
+
+## Operations
+
+Pandas offers a lot of functions like NumPy's UFuncs that can be applied on a
+`Series` or `DataFrame` either using a method (with another `Seris` or
+`DataFrame` as a argument) or using a Python operator:
+
+| Operator    | Method                           | Description         |
+|-------------|----------------------------------|---------------------|
+| `+`         | `add()`                          | Addition            |
+| `-`         | `sub()`, `subtract()`            | Subtraction         |
+| `*`         | `mul()`, `multiply()`            | Multiplication      |
+| `/`         | `truediv()`, `div()`, `divide()` | Division            |
+| `//`        | `floordiv()`                     | Floor Division      |
+| `%`         | `mod()`                          | Modulus (remainder) |
+| `**`        | `pow()`                          | Exponentiation      |
+
+The index of the operands is preserved in the result. If the operands are
+heterogeneous, the result contains the union of the two indices, with `NaN`
+filled in for missing values:
+
+```python
+>>> hours = pd.Series([25, 40, 32], index=['Alice', 'Bob', 'Malory'])
+>>> rates = pd.Series([45, 50, 30], index=['Alice', 'Bob', 'Thomas'])
+>>> hours * wages
+Alice     1125.0
+Bob       2000.0
+Malory       NaN
+Thomas       NaN
+dtype: float64
+```
+
+An operation that mixes a `Series` and a `DataFrame` works like an operation on
+a one-dimensional and a multi-dimensional array; broadcasting rules (similar as
+those for NumPy) apply:
+
+```python
+>>> wages = pd.DataFrame({'January': {'Alice': 4500, 'Bob': 4800},
+...                       'February': {'Alice': 4200, 'Bob': 4500}})
+>>> wages
+       January  February
+Alice     4500      4200
+Bob       4800      4500
+
+>>> increase = pd.Series({'Alice': 1.2, 'Bob': 1.1})
+>>> increase
+Alice    1.2
+Bob      1.1
+dtype: float64
+
+>>> wages.T * increase # with transposition
+           Alice     Bob
+January   5400.0  5280.0
+February  5040.0  4950.0
+
+>>> wages.multiply(increase, axis=0) # with optional axis (increase as rows)
+       January  February
+Alice   5400.0    5040.0
+Bob     5280.0    4950.0
+```
+
+Pandas always preserves indices and column names, so that the data context is
+maintained.
