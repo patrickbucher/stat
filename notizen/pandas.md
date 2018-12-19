@@ -565,8 +565,8 @@ the absence of a value in two different ways:
 1. `None`: a Python singleton object, which is used in `object` collections
    (rather slow due to the overhead).
 2. `NaN`: a special floating point value (not a number), which is defined in
-   the IEEE-754 standard and used for numeric collections.
-    - NumPy's `NaN` reference is used: `np.nan`
+   the IEEE-754 standard and used for numeric collections. NumPy's `NaN`
+   reference is used: `np.nan`.
 
 A `Series` and `DataFrame` containing a `None` or `NaN` «value» is upcast
 according to the types of the other elements: integer types are upcast to
