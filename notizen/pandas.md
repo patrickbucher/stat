@@ -555,3 +555,176 @@ Bob     5280.0    4950.0
 
 Pandas always preserves indices and column names, so that the data context is
 maintained.
+
+## Handling Missing Data
+
+Real-world data sets are rarely clean and homogeneous. Oftentimes, values are
+missing, and the lack of a value is indicated in different ways. Pandas marks
+the absence of a value in two different ways:
+
+1. `None`: a Python singleton object, which is used in `object` collections
+   (rather slow due to the overhead).
+2. `NaN`: a special floating point value (not a number), which is defined in
+   the IEEE-754 standard and used for numeric collections.
+    - NumPy's `NaN` reference is used: `np.nan`
+
+A `Series` and `DataFrame` containing a `None` or `NaN` «value» is upcast
+according to the types of the other elements: integer types are upcast to
+`float64`; booleans are upcast to `object`.
+
+```python
+>>> pd.Series([1, 2, None]) # None replaced by NaN
+0    1.0
+1    2.0
+2    NaN
+dtype: float64
+
+>>> pd.Series([1, 2, np.nan])
+0    1.0
+1    2.0
+2    NaN
+dtype: float64
+
+>>> pd.Series([True, False, None]) # None preserved
+0     True
+1    False
+2     None
+dtype: object
+
+>>> pd.Series([True, False, np.nan])
+0     True
+1    False
+2      NaN
+dtype: object
+```
+
+Any operation involving `NaN` yields `NaN`:
+
+```python
+>>> 3 + np.nan
+nan
+
+>>> (3 + 7) * np.nan
+nan
+
+>>> pd.Series([1, 2, np.nan]) + pd.Series([1, np.nan, 3])
+0    2.0
+1    NaN
+2    NaN
+dtype: float64
+```
+
+Whereas NumPy supports special `NaN`-aware functions (`np.nansum()`,
+`np.nanmax()`), Pandas offers special functions to deal with absent values:
+
+`isnull()` and `notnull()` return a boolean mask indicating if there is no
+value (`isnull`) or a value (`notnull`) at the respective index. These masks
+can be used for indexing:
+
+```python
+>>> s = pd.Series([1, np.nan, 3])
+>>> s.isnull()
+0    False
+1     True
+2    False
+dtype: bool
+
+>>> s.notnull()
+0     True
+1    False
+2     True
+dtype: bool
+
+>>> s[s.notnull()]
+0    1.0
+2    3.0
+dtype: float64
+```
+
+`dropna()` removes `None` and `NaN` entries in a `Series`. In a `DataFrame`,
+the full row or column missing a value is removed, which can be defined using
+the optional `axis` parameter:
+
+```python
+>>> farmers = ['Miller', 'Shaw', 'Watson']
+>>> dogs = pd.Series([1, 2, 1], index=farmers)
+>>> cats = pd.Series([3, 1, np.nan], index=farmers)
+>>> cows = pd.Series([7, np.nan, 2], index=farmers)
+>>> pigs = pd.Series([0, 2, np.nan], index=farmers)
+>>> livestock = pd.DataFrame( {'dogs': dogs, 'cats': cats, 'cows': cows, 'pigs': pigs})
+>>> livestock
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+Shaw       2   1.0   NaN   2.0
+Watson     1   NaN   2.0   NaN
+
+>>> livestock.dropna() # default: axis='rows'
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+
+>>> livestock.dropna(axis='columns')
+        dogs
+Miller     1
+Shaw       2
+Watson     1
+```
+
+By default, every row/column with at least one missing entry is dropped. If the
+optional `how` parameter is set to `all`, only rows/columns with missing values
+only are dropped:
+
+```pythpon
+>>> livestock.dropna() # default: how='any'
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+
+>>> livestock.dropna(how='all')
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+Shaw       2   1.0   NaN   2.0
+Watson     1   NaN   2.0   NaN
+```
+
+The optional parameter `thresh` allows to define a threshold: only drop
+rows/columns with fewer values given:
+
+```python
+>>> livestock.dropna(thresh=3) # drop rows with fewer than three values
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+Shaw       2   1.0   NaN   2.0
+
+>>> livestock.dropna(thresh=3, axis='columns')
+        dogs
+Miller     1
+Shaw       2
+Watson     1
+```
+
+`fillna()` fills in a value where one is missing. Either a scalar value can be
+passed, or the value from a neighbouring cell can be propagated using a
+combination of the `method` (`ffill`/`bfill`: forward and backward fill) and
+`axis` (`rows`/`columns`) parameters:
+
+```python
+>>> livestock.fillna(0) # replace NaN with 0, which is useful for sums
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+Shaw       2   1.0   0.0   2.0
+Watson     1   0.0   2.0   0.0
+
+>>> livestock.fillna(method='ffill', axis='rows') # propagate value to next row
+        dogs  cats  cows  pigs
+Miller     1   3.0   7.0   0.0
+Shaw       2   1.0   7.0   2.0
+Watson     1   1.0   2.0   2.0
+
+>>> livestock.fillna(method='bfill', axis='columns') # ... from previous column
+        dogs  cats  cows  pigs
+Miller   1.0   3.0   7.0   0.0
+Shaw     2.0   1.0   2.0   2.0
+Watson   1.0   2.0   2.0   NaN
+```
+
+If there is no next or previous row or column, `NaN` entries could still remain
+after the `fillna()` operation.
