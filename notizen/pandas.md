@@ -728,3 +728,128 @@ Watson   1.0   2.0   2.0   NaN
 
 If there is no next or previous row or column, `NaN` entries could still remain
 after the `fillna()` operation.
+
+## Hierarchical Indexing
+
+Pandas `Series` and `DataFrame` represent one- and two-dimensional data. But
+some data must be indexed by more than two indices, and values can only be
+accessed by a combination of all those indices. This concept is called
+_hierarchical indexing_ or _multi-indexing_.
+
+A index with multiple levels could be represented by a tuple (using Formula 1
+teams and seasons as indices):
+
+```python
+>>> index = [
+    ('Mercedes', 2018), ('Mercedes', 2017),
+    ('Ferrari', 2018), ('Ferrari', 2017),
+    ('McLaren', 2018), ('McLaren', 2017)]
+>>> points = pd.Series([655, 688, 571, 522, 62, 30], index=index)
+>>> points
+(Mercedes, 2018)    655
+(Mercedes, 2017)    688
+(Ferrari, 2018)     571
+(Ferrari, 2017)     522
+(McLaren, 2018)      62
+(McLaren, 2017)      30
+dtype: int64
+```
+
+However, storing a tuple as the index is inconvenient and inefficient for data
+access. Therefore Pandas offers `MultiIndex`, an efficient wrapper for tuple
+indices:
+
+```python
+>>> multi_index = pd.MultiIndex.from_tuples(index)
+>>> multi_index
+MultiIndex(levels=[['Ferrari', 'McLaren', 'Mercedes'], [2017, 2018]],
+           labels=[[2, 2, 0, 0, 1, 1], [1, 0, 1, 0, 1, 0]])
+```
+
+The `MultiIndex` has two `levels` (the team names and seasons), and they are
+combined with `labels` like this:
+
+| Team     | `labels[0]` | `labels[1]` | Season |
+|----------|-------------|-------------|--------|
+| Mercedes | 2           | 1           | 2018   |
+| Mercedes | 2           | 0           | 2017   |
+| Ferrari  | 0           | 1           | 2018   |
+| Ferrari  | 0           | 0           | 2017   |
+| McLaren  | 1           | 1           | 2018   |
+| McLaren  | 1           | 0           | 2017   |
+
+A `Series` created with a tuple index can be reindexed using a `MultiIndex`:
+
+```python
+>>> points = points.reindex(multi_index)
+>>> points
+Mercedes  2018    655
+          2017    688
+Ferrari   2018    571
+          2017    522
+McLaren   2018     62
+          2017     30
+dtype: int64
+```
+
+The blank space below the team index means that the value from above is used.
+
+Conceputally, a `Series` with two indices is a lot like a `DataFrame`, which
+maps the first index to the rows and the second index to the columns. A
+multi-index `Series` can be converted to a `DataFrame` using the `Series`
+`unstack()` method:
+
+```python
+>>> points_df = points.unstack()
+>>> points
+          2017  2018
+Ferrari    522   571
+McLaren     30    62
+Mercedes   688   655
+```
+
+The `DataFrame` can be converted back to a multi-index `Series` using the
+`stack()` method:
+
+```python
+>>> points_sr = points_df.stack()
+Ferrari   2017    522
+          2018    571
+McLaren   2017     30
+          2018     62
+Mercedes  2017    688
+          2018    655
+dtype: int64
+```
+
+A `DataFrame` with additional columns can be created based on the existing
+`DataFrame`:
+
+```python
+>>> f1 = pd.DataFrame({
+    'points': points,
+    'races': [21, 20, 21, 20, 21, 20],
+    'wins': [11, 12, 6, 5, 0, 0]})
+>>> f1
+               points  races  wins
+Mercedes 2018     655     21    11
+         2017     688     20    12
+Ferrari  2018     571     21     6
+         2017     522     20     5
+McLaren  2018      62     21     0
+         2017      30     20     0
+```
+
+The operations mentioned earlier can also be applied:
+
+```python
+>>> win_ratio = f1['wins'] / f1['races']
+>>> win_ratio
+Mercedes  2018    0.523810
+          2017    0.600000
+Ferrari   2018    0.285714
+          2017    0.250000
+McLaren   2018    0.000000
+          2017    0.000000
+dtype: float64
+```
