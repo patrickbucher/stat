@@ -954,6 +954,8 @@ Ferrari  2018       1.0      3.0      1.0      NaN
          2017       1.0      4.0      1.0      4.0
 ```
 
+This allows for four-dimensional indices.
+
 Both row and column index can be named by setting a list of row/column names
 with the appropriate length to the `names` attribute of the index:
 
