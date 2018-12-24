@@ -957,7 +957,7 @@ Ferrari  2018       1.0      3.0      1.0      NaN
 Both row and column index can be named by setting a list of row/column names
 with the appropriate length to the `names` attribute of the index:
 
-```
+```python
 >>> f1.index.names = ['Team', 'Season']
 >>> f1.columns.names = ['GP', 'Driver']
 >>> f1
