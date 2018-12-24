@@ -853,3 +853,119 @@ McLaren   2018    0.000000
           2017    0.000000
 dtype: float64
 ```
+
+### Creation of Hierarchical Indices
+
+A hierarchical index can be created implicitly, i.e. together with the `Series`
+or the `DataFrame`.
+
+The index can be passed as an additional argument to the constructor as a list
+of index arrays:
+
+```python
+>>> points = [655, 688, 571, 522]
+>>> index = [['Mercedes', 'Mercedes', 'Ferrari', 'Ferrari'],
+             [2018, 2017, 2018, 2017]]
+>>> pd.Series(points, index=index)
+Mercedes  2018    655
+          2017    688
+Ferrari   2018    571
+          2017    522
+dtype: int64
+```
+
+Or a dictionary can be passed to the constructor, with appropriate index tuples
+as keys:
+
+```python
+>>> points = {('Mercedes', 2018): 655, ('Mercedes', 2017): 688,
+              ('Ferrari', 2018): 571, ('Ferrari', 2017): 522}
+>>> pd.Series(points)
+Mercedes  2018    655
+          2017    688
+Ferrari   2018    571
+          2017    522
+dtype: int64
+```
+
+Using one of `MultiIndex` class methods, a hierarchical index can be created
+explicitly. The resulting object can be passed to the constructor of a `Series`
+or a `DataFrame` as the `index` attribute.
+
+The method `from_arrays` accepts a list of index arrays:
+
+```python
+>>> pd.MultiIndex.from_arrays([['Mercedes', 'Mercedes', 'Ferrari', 'Ferrari'],
+                               [2018, 2017, 2018, 2017]])
+MultiIndex(levels=[['Ferrari', 'Mercedes'], [2017, 2018]],
+           labels=[[1, 1, 0, 0], [1, 0, 1, 0]])
+```
+
+The method `from_tuples` accepts a list of index tuples:
+
+```python
+>>> pd.MultiIndex.from_tuples([('Mercedes', 2018), ('Mercedes', 2017),
+                               ('Ferrari', 2018), ('Ferrari', 2017)])
+MultiIndex(levels=[['Ferrari', 'Mercedes'], [2017, 2018]],
+           labels=[[1, 1, 0, 0], [1, 0, 1, 0]])
+```
+
+In the above examples, every item from the first index (`['Mercedes',
+'Ferrari']`) has been combined with every item from the second index (`[2018,
+2017]`) _manually_. This Cartesian product can also be created automatically
+using the `from_product` method:
+
+```python
+>>> pd.MultiIndex.from_product([['Mercedes', 'Ferrari'], [2018, 2017]])
+MultiIndex(levels=[['Ferrari', 'Mercedes'], [2017, 2018]],
+           labels=[[1, 1, 0, 0], [1, 0, 1, 0]])
+```
+
+The index levels can also be combined manually using a nested list of labels
+passed to the constructor of `MultiIndex`. This is especially helpful, if only
+certain combinations of index entries need to be created:
+
+```python
+>>> index = pd.MultiIndex(levels=[['Manor', 'Haas'], [2015, 2016, 2017]],
+                          labels=[[0,0,1,1], [0,1,1,2]])
+>>> pd.Series([0, 1, 29, 47], index=index)
+Manor  2015     0
+       2016     1
+Haas   2016    29
+       2017    47
+dtype: int64
+```
+
+Using a `DataFrame`, both rows and columns can have multiple indices:
+
+```python
+>>> row_index = pd.MultiIndex.from_product([['Mercedes', 'Ferrari'],
+                                            [2018, 2017]])
+>>> col_index = pd.MultiIndex.from_product([['Australia', 'Bahrain'],
+                                            ['Driver 1', 'Driver 2']])
+>>> pos = np.array([2, 8, 3, 2, 2, 3, 2, 3, 1, 3, 1, np.nan, 1, 4, 1, 4])
+>>> f1 = pd.DataFrame(pos.reshape((4, 4)), index=row_index, columns=col_index)
+>>> f1
+              Australia           Bahrain
+               Driver 1 Driver 2 Driver 1 Driver 2
+Mercedes 2018       2.0      8.0      3.0      2.0
+         2017       2.0      3.0      2.0      3.0
+Ferrari  2018       1.0      3.0      1.0      NaN
+         2017       1.0      4.0      1.0      4.0
+```
+
+Both row and column index can be named by setting a list of row/column names
+with the appropriate length to the `names` attribute of the index:
+
+```
+>>> f1.index.names = ['Team', 'Season']
+>>> f1.columns.names = ['GP', 'Driver']
+>>> f1
+GP              Australia           Bahrain
+Driver           Driver 1 Driver 2 Driver 1 Driver 2
+Team     Season
+Mercedes 2018         2.0      8.0      3.0      2.0
+         2017         2.0      3.0      2.0      3.0
+Ferrari  2018         1.0      3.0      1.0      NaN
+         2017         1.0      4.0      1.0      4.0
+```
