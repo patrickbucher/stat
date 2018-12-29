@@ -1071,3 +1071,66 @@ pigs  2000    60
       2010    52
 dtype: int64
 ```
+
+The indexing hierarchy on a `DataFrame` behaves like the one of a `Series`,
+expect that a `DataFrame` is indexed by columns first:
+
+```python
+>>> row_idx = pd.MultiIndex.from_product([[2017, 2018],
+                                          ['Jan', 'Jul']])
+>>> col_idx = col_idx = pd.MultiIndex.from_product([['Tom', 'Jim'],
+                                                    ['height', 'weight']])
+>>> val = [[122, 35, 129, 37],
+           [128, 37, 131, 39],
+           [134, 39, 135, 41],
+           [137, 40, 138, 43]]
+>>> kids = pd.DataFrame(val, columns=col_idx, index=row_idx)
+>>> kids
+            Tom           Jim
+         height weight height weight
+2017 Jan    122     35    129     37
+     Jul    128     37    131     39
+2018 Jan    134     39    135     41
+     Jul    137     40    138     43
+
+>>> kids['Tom', 'height']
+2017  Jan    122
+      Jul    128
+2018  Jan    134
+      Jul    137
+Name: (Tom, height), dtype: int64
+```
+
+For row-oriented selection on a `DataFrame`, the implicit index can be used:
+
+```python
+>>> kids.iloc[0:2]
+            Tom           Jim
+         height weight height weight
+2017 Jan    122     35    129     37
+     Jul    128     37    131     39
+```
+
+The column index hierarchy can be expressed using the explicit index and
+tuples:
+
+```python
+>>> kids.loc[:, ('Tom', 'weight')]
+2017  Jan    35
+      Jul    37
+2018  Jan    39
+      Jul    40
+Name: (Tom, weight), dtype: int64
+```
+
+Because tuples do not support slices, Pandas offers the `IndexSlice` object:
+
+```python
+>>> jan = pd.IndexSlice[:, 'Jan']
+>>> weight = pd.IndexSlice[:, 'weight']
+>>> kids.loc[jan, weight]
+            Tom    Jim
+         weight weight
+2017 Jan     35     37
+2018 Jan     39     41
+```
