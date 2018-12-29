@@ -971,3 +971,103 @@ Mercedes 2018         2.0      8.0      3.0      2.0
 Ferrari  2018         1.0      3.0      1.0      NaN
          2017         1.0      4.0      1.0      4.0
 ```
+
+### Indexing and Slicing
+
+Indexing and Slicing on `Series` is row based. This `Series` index has a
+species as the first (higher level) index, and the year as the second (lower
+level) index:
+
+```python
+>>> idx = pd.MultiIndex.from_product([['cats', 'cows', 'dogs', 'pigs'],
+                                        [2000, 2005, 2010]])
+>>> livestock = pd.Series([32, 16, 25, 60, 75, 52, 1, 1, 2, 4, 3, 7], index=idx)
+>>> livestock
+cows  2000    32
+      2005    16
+      2010    25
+pigs  2000    60
+      2005    75
+      2010    52
+dogs  2000     1
+      2005     1
+      2010     2
+cats  2000     4
+      2005     3
+      2010     7
+dtype: int64
+```
+
+Individual values can be accessed using full indexing by first indicating the
+higher level index and second the lower level index:
+
+```python
+>>> livestock['cats', 2000]
+4
+>>> livestock['cows', 2010]
+25
+>>> livestock['pigs', 2005] - livestock['pigs', 2010]
+23
+```
+
+If the lower level index is left unspecified, a `Series` with the lower level
+index retained is returned:
+
+```python
+>>> livestock['cows']
+2000    32
+2005    16
+2010    25
+dtype: int64
+```
+
+Passing an empty slice for the higher level index allows indexing on the lower
+level index:
+
+```python
+>>> livestock[:, 2010]
+cows    25
+pigs    52
+dogs     2
+cats     7
+dtype: int64
+```
+
+Slicing on the explicit index is only available on a sorted `MultiIndex`:
+
+```python
+>>> idx = idx.sort_values()
+>>> livestock = pd.Series([4, 3, 7, 32, 16, 25, 1, 1, 2, 60, 75, 52], index=idx)
+>>> livestock.loc['cats':'cows', 2000:2005]
+cats  2000     4
+      2005     3
+cows  2000    32
+      2005    16
+dtype: int64
+```
+
+Selections can be made based on boolean masks:
+
+```python
+>>> livestock[livestock > 10]
+cows  2000    32
+      2005    16
+      2010    25
+pigs  2000    60
+      2005    75
+      2010    52
+dtype: int64
+```
+
+Values can be selected using fancy indexing:
+
+```python
+>>> livestock[['cows', 'pigs']]
+cows  2000    32
+      2005    16
+      2010    25
+pigs  2000    60
+      2005    75
+      2010    52
+dtype: int64
+```
