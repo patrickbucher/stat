@@ -1244,6 +1244,8 @@ dtype: float64
 `level` and `axis` can also be combined, which is useful if both row and column
 use a `MultiIndex`.
 
+### Multi-Indices vs. Panels
+
 Datasets using a `MultiIndex` are _sparse representations_ of data: only the
 existing values are represented. Panels (classes `Panel` and `Panel4D`), in
 contrast, are _dense representations_ of data. A value is stored for every
