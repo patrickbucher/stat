@@ -794,34 +794,6 @@ dtype: int64
 
 The blank space below the team index means that the value from above is used.
 
-Conceputally, a `Series` with two indices is a lot like a `DataFrame`, which
-maps the first index to the rows and the second index to the columns. A
-multi-index `Series` can be converted to a `DataFrame` using the `Series`
-`unstack()` method:
-
-```python
->>> points_df = points.unstack()
->>> points
-          2017  2018
-Ferrari    522   571
-McLaren     30    62
-Mercedes   688   655
-```
-
-The `DataFrame` can be converted back to a multi-index `Series` using the
-`stack()` method:
-
-```python
->>> points_sr = points_df.stack()
-Ferrari   2017    522
-          2018    571
-McLaren   2017     30
-          2018     62
-Mercedes  2017    688
-          2018    655
-dtype: int64
-```
-
 A `DataFrame` with additional columns can be created based on the existing
 `DataFrame`:
 
@@ -1033,11 +1005,24 @@ cats     7
 dtype: int64
 ```
 
-Slicing on the explicit index is only available on a sorted `MultiIndex`:
+Slicing on the explicit index is only available on a dataset with a sorted
+`MultiIndex`. Either the dataset is created using a sorted `MultiIndex`:
 
 ```python
 >>> idx = idx.sort_values()
 >>> livestock = pd.Series([4, 3, 7, 32, 16, 25, 1, 1, 2, 60, 75, 52], index=idx)
+```
+
+Or the `MultiIndex` on the existing dataset is sorted, returning a new dataset:
+
+```python
+>>> livestock = livestock.sort_index()
+```
+
+The indices are sorted lexicographically. Then the slicing operations can be
+performed (on the explicit index):
+
+```python
 >>> livestock.loc['cats':'cows', 2000:2005]
 cats  2000     4
       2005     3
@@ -1134,3 +1119,133 @@ Because tuples do not support slices, Pandas offers the `IndexSlice` object:
 2017 Jan     35     37
 2018 Jan     39     41
 ```
+
+### Rearranging Multi-Indices
+
+Conceputally, a `Series` with two indices is a lot like a `DataFrame`, which
+maps the first index to the rows and the second index to the columns. A
+multi-index `Series` can be converted to a `DataFrame` using the `Series`
+`unstack()` method:
+
+```python
+>>> idx = pd.MultiIndex.from_product([[2017, 2018],
+                                      ['Bezos', 'Gates', 'Buffet']]) 
+>>> billions = [72.8, 75.6, 86.0, 112, 84, 90]
+>>> richest = pd.Series(billions, index=idx.sort_values())
+>>> richest
+2017  Bezos      72.8
+      Buffet     75.6
+      Gates      86.0
+2018  Bezos     112.0
+      Buffet     84.0
+      Gates      90.0
+dtype: float64
+
+>>> richest.unstack()
+      Bezos  Buffet  Gates
+2017   72.8    75.6   86.0
+2018  112.0    84.0   90.0
+```
+
+An optional level can be defined to indicate which index level is to be
+transformed into a column level:
+
+```python
+>>> richest.unstack(level=0)
+        2017   2018
+Bezos   72.8  112.0
+Buffet  75.6   84.0
+Gates   86.0   90.0
+
+>>> richest.unstack(level=1)
+      Bezos  Buffet  Gates
+2017   72.8    75.6   86.0
+2018  112.0    84.0   90.0
+```
+
+The `DataFrame` can be converted back to a multi-index `Series` using the
+`stack()` method. The column index will become the lower level index of the row
+`MultiIndex`:
+
+```python
+>>> richest.unstack(level=0).stack()
+Bezos   2017     72.8
+        2018    112.0
+Buffet  2017     75.6
+        2018     84.0
+Gates   2017     86.0
+        2018     90.0
+dtype: float64
+```
+
+The indices of a dataset can be turned into regular columns using the
+`reset_index()` method, which allows to name the existing data column using an
+optional argument:
+
+```python
+>>> richest.index.names = ['year', 'person']
+>>> table = richest.reset_index(name='billions')
+>>> table
+   year  person  billions
+0  2017   Bezos      72.8
+1  2017  Buffet      75.6
+2  2017   Gates      86.0
+3  2018   Bezos     112.0
+4  2018  Buffet      84.0
+5  2018   Gates      90.0
+```
+
+Data columns can also be turned (back) into a `MultiIndex` using the
+`set_index()` method, which expects a list of columns to be used as indices:
+
+```python
+>>> table.set_index(['year', 'person'])
+             billions
+year person
+2017 Bezos       72.8
+     Buffet      75.6
+     Gates       86.0
+2018 Bezos      112.0
+     Buffet      84.0
+     Gates       90.0
+```
+
+Aggregation methods have optional `level` and `axis` parameters, which allow
+for partial aggregations:
+
+```python
+>>> richest.mean(level='year')
+year
+2017    78.133333
+2018    95.333333
+dtype: float64
+
+>>> richest.mean(level='person')
+person
+Bezos     92.4
+Buffet    79.8
+Gates     88.0
+dtype: float64
+
+>>> richest.unstack(level=0).mean(axis=0)
+year
+2017    78.133333
+2018    95.333333
+dtype: float64
+
+>>> richest.unstack(level=0).mean(axis=1)
+person
+Bezos     92.4
+Buffet    79.8
+Gates     88.0
+dtype: float64
+```
+
+`level` and `axis` can also be combined, which is useful if both row and column
+use a `MultiIndex`.
+
+Datasets using a `MultiIndex` are _sparse representations_ of data: only the
+existing values are represented. Panels (classes `Panel` and `Panel4D`), in
+contrast, are _dense representations_ of data. A value is stored for every
+combination of all indices. Since real-world data sets are often sparse,
+`MultiIndex` datasets are often more efficient than panels.
