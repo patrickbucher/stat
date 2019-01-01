@@ -1251,3 +1251,192 @@ existing values are represented. Panels (classes `Panel` and `Panel4D`), in
 contrast, are _dense representations_ of data. A value is stored for every
 combination of all indices. Since real-world data sets are often sparse,
 `MultiIndex` datasets are often more efficient than panels.
+
+## Combining Datasets
+
+Conducting interesting studies of data often requires combining datasets from
+different sources. Pandas offers different facilities to perform this task:
+concatenations and database-style joins.
+
+### Concat and Append
+
+To demonstrate the concatenation of datasets, this function is used to create a
+`DataFrame` quickly with values made up of column names and row indices:
+
+```python
+def create_df(cols, index):
+    data = {c: [str(c) + str(i) for i in index] for c in cols}
+    return pd.DataFrame(data, index)
+```
+
+The function can be used thus:
+
+```python
+>>> create_df('ABC', range(3))
+    A   B   C
+0  A0  B0  C0
+1  A1  B1  C1
+2  A2  B2  C2
+```
+
+Multiple `Series` or `DataFrame`s can be combined using Pandas `concat`
+function, which expects a list of datasets:
+
+```python
+>>> a = create_df('ABC', [1, 2, 3])
+>>> b = create_df('ABC', [4, 5, 6])
+>>> pd.concat([a, b])
+    A   B   C
+1  A1  B1  C1
+2  A2  B2  C2
+3  A3  B3  C3
+4  A4  B4  C4
+5  A5  B5  C5
+6  A6  B6  C6
+```
+
+By default, the concatenation is performed row-wise (default parameter
+`axis=0`). The concatenation can be performed column-wise by setting the `axis`
+parameter either to `1`:
+
+```python
+>>> a = create_df('ABC', [1, 2, 3])
+>>> b = create_df('DEF', [1, 2, 3])
+>>> pd.concat([a, b], axis=1)
+    A   B   C   D   E   F
+1  A1  B1  C1  D1  E1  F1
+2  A2  B2  C2  D2  E2  F2
+3  A3  B3  C3  D3  E3  F3
+```
+
+By default, indices are preserved, even if the resulting index contains
+duplicates:
+
+```python
+>>> a = create_df('ABC', [0, 1, 2])
+>>> b = create_df('ABC', [2, 3, 4])
+>>> pd.concat([a, b])
+    A   B   C
+0  A0  B0  C0
+1  A1  B1  C1
+2  A2  B2  C2
+2  A2  B2  C2
+3  A3  B3  C3
+4  A4  B4  C4
+```
+
+The index `2` occurs twice in the resulting dataset above. There are different
+ways to deal with duplicate indices. The first is to raise an error in case of
+conflict by setting the `verify_integrity` flag to `True`:
+
+```python
+>>> pd.concat([a, b], verify_integrity=True)
+ValueError: Indexes have overlapping values: Int64Index([2], dtype='int64')
+```
+
+An other option is to ignore the existing indices and let Pandas create a new
+one by setting the `ignore_index` flag to `True`:
+
+```python
+>>> pd.concat([a, b], ignore_index=True)
+    A   B   C
+0  A0  B0  C0
+1  A1  B1  C1
+2  A2  B2  C2
+3  A2  B2  C2
+4  A3  B3  C3
+5  A4  B4  C4
+```
+
+The existing indices can be converted to a `MultiIndex` by introducing a
+higher-level index key describing the source of the entries in the resulting
+dataset using the `keys` parameter:
+
+```python
+>>> pd.concat([a, b], keys=['a', 'b'])
+      A   B   C
+a 0  A0  B0  C0
+  1  A1  B1  C1
+  2  A2  B2  C2
+b 2  A2  B2  C2
+  3  A3  B3  C3
+  4  A4  B4  C4
+```
+
+If datasets with columns in common are concatenated, the resulting dataset is a
+union of the source datasets (default parameter `join='outer'`). Missing values
+(in uncommon columns) are filled up as `NaN`:
+
+```python
+>>> a = create_df('ABC', range(3))
+>>> b = create_df('BCD', range(3))
+>>> pd.concat([a, b])
+     A   B   C    D
+0   A0  B0  C0  NaN
+1   A1  B1  C1  NaN
+2   A2  B2  C2  NaN
+0  NaN  B0  C0   D0
+1  NaN  B1  C1   D1
+2  NaN  B2  C2   D2
+```
+
+If the resulting dataset should only consist of the columns in common of the
+source datasets, setting the parameter `join='inner'` will create a dataset as
+an intersection of the source columns:
+
+```python
+>>> pd.concat([a, b], join='inner')
+    B   C
+0  B0  C0
+1  B1  C1
+2  B2  C2
+0  B0  C0
+1  B1  C1
+2  B2  C2
+```
+
+For fine-grained control of the resulting columns, the parameter `join_axes`
+can be set to a `Index` object representing the output columns:
+
+```python
+>>> pd.concat([a, b], join_axes=[pd.Index(['A', 'B', 'C'])])
+     A   B   C
+0   A0  B0  C0
+1   A1  B1  C1
+2   A2  B2  C2
+0  NaN  B0  C0
+1  NaN  B1  C1
+2  NaN  B2  C2
+```
+
+An existing `Index` object of the source datasets can also be used:
+
+```python
+>>> pd.concat([a, b], join_axes=[a.columns])
+     A   B   C
+0   A0  B0  C0
+1   A1  B1  C1
+2   A2  B2  C2
+0  NaN  B0  C0
+1  NaN  B1  C1
+2  NaN  B2  C2
+```
+
+The `append()` method of a `DataFrame` is a shorthand for the `pd.concat()`
+function:
+
+```python
+>>> a = create_df('ABC', range(3))
+>>> b = create_df('ABC', [3, 4, 5])
+>>> a.append(b)
+    A   B   C
+0  A0  B0  C0
+1  A1  B1  C1
+2  A2  B2  C2
+3  A3  B3  C3
+4  A4  B4  C4
+5  A5  B5  C5
+```
+
+It should not be used when combining more than two datasets, because new
+indices and data buffers are created for every intermediary step.
