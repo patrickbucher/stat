@@ -1440,3 +1440,257 @@ function:
 
 It should not be used when combining more than two datasets, because new
 indices and data buffers are created for every intermediary step.
+
+### Merge and Join
+
+Pandas offers high-performance, in-memory join and merge operations. The
+`pd.merge()` function is the main interface, but `DataFrame` and `Series` also
+offer a `join()` method for higher convenience.
+
+There are three types of joins:
+
+1. one-to-one (1:1)
+2. one-to-many (1:n)
+3. many-to-many (n:m)
+
+The type of join to be performed depends solely on the input data.
+
+A one-to-one join is similar to column-wise concatenation. The datasets are
+automatically joined using a column common to both datasets:
+
+```python
+>>> employees = pd.DataFrame(
+        {'employee': ['Dilbert', 'Catbert', 'Pointy Haired Boss'],
+         'department': ['Engineering', 'HR', 'Management']})
+>>> employees
+             employee   department
+0             Dilbert  Engineering
+1             Catbert           HR
+2  Pointy Haired Boss   Management
+
+>>> departments = pd.DataFrame(
+        {'department': ['Management', 'HR', 'Engineering'],
+         'location': ['upper floor', 'middle floor', 'basement']})
+>>> departments
+    department      location
+0   Management   upper floor
+1           HR  middle floor
+2  Engineering      basement
+
+>>> pd.merge(employees, departments)
+             employee   department      location
+0             Dilbert  Engineering      basement
+1             Catbert           HR  middle floor
+2  Pointy Haired Boss   Management   upper floor
+```
+
+The index of the input datasets is discarded; a new index is generated for the
+resulting dataset. The order of entries in the output may be different from the
+input.
+
+If one of the key columns contains duplicates, a one-to-many join is performed.
+Using the same `departments`, but a extended `employees` dataset:
+
+```python
+>>> employees = pd.DataFrame(
+        {'employee': ['Dilbert', 'Wally', 'Catbert', 'Pointy Haired Boss'],
+         'department': ['Engineering', 'Engineering', 'HR', 'Management']})
+>>> employees
+             employee   department
+0             Dilbert  Engineering
+1               Wally  Engineering
+2             Catbert           HR
+3  Pointy Haired Boss   Management
+
+>>> pd.merge(employees, departments)
+             employee   department      location
+0             Dilbert  Engineering      basement
+1               Wally  Engineering      basement
+2             Catbert           HR  middle floor
+3  Pointy Haired Boss   Management   upper floor
+```
+
+If the key columns on both sides contain duplicates, a many-to-many join is
+performed:
+
+```python
+>>> employees = pd.DataFrame(
+        {'name': ['Dilbert', 'Wally', 'Catbert'],
+         'department': ['Engineering', 'Engineering', 'HR']})
+>>> employees
+      name   department
+0  Dilbert  Engineering
+1    Wally  Engineering
+2  Catbert           HR
+
+>>> skills = pd.DataFrame(
+        {'skill': ['programming', 'thinking', 'thinking', 'manipulating'],
+         'department': ['Engineering', 'Engineering', 'HR', 'HR']})
+>>> skills
+          skill   department
+0   programming  Engineering
+1      thinking  Engineering
+2      thinking           HR
+3  manipulating           HR
+
+>>> pd.merge(employees, skills)
+      name   department         skill
+0  Dilbert  Engineering   programming
+1  Dilbert  Engineering      thinking
+2    Wally  Engineering   programming
+3    Wally  Engineering      thinking
+4  Catbert           HR      thinking
+5  Catbert           HR  manipulating
+```
+
+These examples all assume _one column common to both datasets_, which is often
+not given in real-world datasets. The behaviour of `merge()` can be further
+specified to overcome this constraint.
+
+If there are multiple common columns in both datasets, the column to be joined
+on can be defined using the `on` parameter:
+
+```python
+>>> employees = pd.DataFrame(
+        {'id': [1, 2, 3],
+         'name': ['Dilbert', 'Wally', 'Catbert'],
+         'department': ['Engineering', 'Engineering', 'HR']})
+>>> employees
+   id     name   department
+0   1  Dilbert  Engineering
+1   2    Wally  Engineering
+2   3  Catbert           HR
+
+>>> departments = pd.DataFrame(
+        {'id': [1, 2],
+         'department': ['Engineering', 'HR'],
+         'location': ['basement', 'middle floor']})
+>>> departments
+   id   department      location
+0   1  Engineering      basement
+1   2           HR  middle floor
+
+>>> pd.merge(employees, departments, on='department')
+   id_x     name   department  id_y      location
+0     1  Dilbert  Engineering     1      basement
+1     2    Wally  Engineering     1      basement
+2     3  Catbert           HR     2  middle floor
+```
+
+If the columns to be joined have a different name, the join can be defined
+using the `left_on` and `right_on` parameters:
+
+```python
+>>> employees = pd.DataFrame(
+        {'id': [1, 2, 3],
+         'name': ['Dilbert', 'Wally', 'Catbert'],
+         'department_id': [1, 1, 2]})
+>>> employees
+   id     name  department_id
+0   1  Dilbert              1
+1   2    Wally              1
+2   3  Catbert              2
+
+>>> departments = pd.DataFrame(
+        {'id': [1, 2, 3],
+         'department': ['Engineering', 'HR', 'Management']})
+>>> departments
+   id   department
+0   1  Engineering
+1   2           HR
+2   3   Management
+
+>>> pd.merge(employees, departments,
+             left_on='department_id', right_on='id')
+   id_x     name  department_id  id_y   department
+0     1  Dilbert              1     1  Engineering
+1     2    Wally              1     1  Engineering
+2     3  Catbert              2     2           HR
+```
+
+Redundant columns can be removed from the output using the `drop()` method by
+providing the name of the column to be discarded, and the argument `axis=1` to
+specify that the column has to be dropped (as opposed to the row with
+`axis=0`):
+
+```python
+>>> pd.merge(employees, departments,
+             left_on='department_id', right_on='id').drop('id_x', axis=1)
+      name  department_id  id_y   department
+0  Dilbert              1     1  Engineering
+1    Wally              1     1  Engineering
+2  Catbert              2     2           HR
+```
+
+Joins can also be performed based on the index instead of on columns. Using the
+datasets `employees` and `department` from above with appropriate indices, the
+join can be performed by setting the `left_index` and `right_index` flags to
+`True`:
+
+```python
+>>> employees = employees.set_index('id')
+>>> employees
+       name  department_id
+id
+1   Dilbert              1
+2     Wally              1
+3   Catbert              2
+
+>>> departments = departments.set_index('id')
+>>> departments
+     department
+id
+1   Engineering
+2            HR
+3    Management
+
+>>> pd.merge(employees, departments, left_index=True, right_index=True)
+       name  department_id   department
+id
+1   Dilbert              1  Engineering
+2     Wally              1           HR
+3   Catbert              2   Management
+```
+
+Merging on the index is the default behaviour of the `join()` method:
+
+```python
+>>> employees.join(departments)
+       name  department_id   department
+id
+1   Dilbert              1  Engineering
+2     Wally              1           HR
+3   Catbert              2   Management
+```
+
+Merging on indices and columns can also be mixed, specifying either the
+`left_on`/`right_index` or the `left_index`/`right_on` parameter pairs:
+
+```python
+>>> employees = pd.DataFrame({
+        'id': [1, 2, 3],
+        'name': ['Dilbert', 'Wally', 'Catbert'],
+        'department_id': [1, 1, 2]})
+>>> employees
+   id     name  department_id
+0   1  Dilbert              1
+1   2    Wally              1
+2   3  Catbert              2
+
+>>> departments = pd.DataFrame({
+        'id': [1, 2, 3],
+        'department': ['Engineering', 'HR', 'Management']})
+>>> departments = departments.set_index('id')
+>>> departments
+     department
+id
+1   Engineering
+2            HR
+3    Management
+
+>>> pd.merge(employees, departments, left_on='department_id', right_index=True)
+   id     name  department_id   department
+0   1  Dilbert              1  Engineering
+1   2    Wally              1  Engineering
+2   3  Catbert              2           HR
+```
