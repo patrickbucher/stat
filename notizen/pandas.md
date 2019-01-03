@@ -1694,3 +1694,97 @@ id
 1   2    Wally              1  Engineering
 2   3  Catbert              2           HR
 ```
+
+The type of the join to be performed in terms of set arithmetic can be defined
+using the `how` keyword. The default option is `inner`; only entries common to
+both input datasets are contained in the result:
+
+```python
+>>> employees = pd.DataFrame({
+        'employee': ['Dilbert', 'Pointy Haired Boss', 'Dogbert'],
+        'department': ['Engineering', 'Management', 'Evil Operations']})
+>>> employees
+             employee       department
+0             Dilbert      Engineering
+1  Pointy Haired Boss       Management
+2             Dogbert  Evil Operations
+
+>>> departments = pd.DataFrame({
+        'department': ['Engineering', 'Management', 'Marketing'],
+        'location': ['basement', 'upper floor', 'middle floor']})
+>>> departments
+    department      location
+0  Engineering      basement
+1   Management   upper floor
+2    Marketing  middle floor
+
+>>> pd.merge(employees, departments, how='inner')
+             employee   department     location
+0             Dilbert  Engineering     basement
+1  Pointy Haired Boss   Management  upper floor
+```
+
+The option `outer` fills up missing entries (i.e. entries not common to both
+input datasets) with `NaN` in the result:
+
+```python
+>>> pd.merge(employees, departments, how='outer')
+             employee       department      location
+0             Dilbert      Engineering      basement
+1  Pointy Haired Boss       Management   upper floor
+2             Dogbert  Evil Operations           NaN
+3                 NaN        Marketing  middle floor
+```
+
+The options `left` and `right` preserve all values from the `left` resp.
+`right` side, and fill up all the missing entries on the other side with `NaN`:
+
+```python
+>>> pd.merge(employees, departments, how='left')
+             employee       department     location
+0             Dilbert      Engineering     basement
+1  Pointy Haired Boss       Management  upper floor
+2             Dogbert  Evil Operations          NaN
+
+>>> pd.merge(employees, departments, how='right')
+             employee   department      location
+0             Dilbert  Engineering      basement
+1  Pointy Haired Boss   Management   upper floor
+2                 NaN    Marketing  middle floor
+```
+
+If the two input datasets have columns with the same name that are not used to
+perform the join operation, a suffix (`_x` and `_y`) is added to both columns
+to prevent conflicts:
+
+```python
+>>> employees.index.names = ['id']
+>>> employees = employees.reset_index()
+>>> employees
+   id            employee       department
+0   0             Dilbert      Engineering
+1   1  Pointy Haired Boss       Management
+2   2             Dogbert  Evil Operations
+
+>>> departments.index.names = ['id']
+>>> departments = departments.reset_index()
+>>> departments
+   id   department      location
+0   0  Engineering      basement
+1   1   Management   upper floor
+2   2    Marketing  middle floor
+
+>>> pd.merge(employees, departments, on='department')
+   id_x            employee   department  id_y     location
+0     0             Dilbert  Engineering     0     basement
+1     1  Pointy Haired Boss   Management     1  upper floor
+```
+
+A list of custom suffixes can be set using the `suffixes` parameter:
+
+```python
+>>> pd.merge(employees, departments, on='department', suffixes=['_emp', '_dep'])
+   id_emp            employee   department  id_dep     location
+0       0             Dilbert  Engineering       0     basement
+1       1  Pointy Haired Boss   Management       1  upper floor
+```
