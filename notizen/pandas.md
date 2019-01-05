@@ -1788,3 +1788,327 @@ A list of custom suffixes can be set using the `suffixes` parameter:
 0       0             Dilbert  Engineering       0     basement
 1       1  Pointy Haired Boss   Management       1  upper floor
 ```
+
+## Aggregation
+
+Computing aggregations is an essential technique for efficient summarization of
+data sets. The `planets` dataset of the `seaborn` package is useful for
+practicing aggregations:
+
+```python
+>>> import seaborn as sns
+>>> planets = sns.load_dataset('planets')
+```
+
+A good starting point is to get an overview over the dataset using the
+`describe()` function, which is a convenience method that performs a couple of
+aggregations for the purpose of understanding rather than further processing
+the data:
+
+```python
+>>> planets.describe()
+            number  orbital_period        mass     distance         year
+count  1035.000000      992.000000  513.000000   808.000000  1035.000000
+mean      1.785507     2002.917596    2.638161   264.069282  2009.070531
+std       1.240976    26014.728304    3.818617   733.116493     3.972567
+min       1.000000        0.090706    0.003600     1.350000  1989.000000
+25%       1.000000        5.442540    0.229000    32.560000  2007.000000
+50%       1.000000       39.979500    1.260000    55.250000  2010.000000
+75%       2.000000      526.005000    3.040000   178.500000  2012.000000
+max       7.000000   730000.000000   25.000000  8500.000000  2014.000000
+```
+
+Important aggregation functions are:
+
+| Function   | Returns                               |
+|------------|---------------------------------------|
+| `count()`  | number of entries (`NaN` not counted) |
+| `min()`    | minimum value                         |
+| `max()`    | maximum value                         |
+| `sum()`    | sum (addition)                        |
+| `prod()`   | product (multiplication)              |
+| `mean()`   | mean (arithmetic average)             |
+| `median()` | median (middle value)                 |
+| `std()`    | standard deviation                    |
+| `var()`    | variance                              |
+| `mad()`    | mean absolute deviation               |
+
+Aggregations on a `DataFrame` result in summarized columns. To aggregate rows
+instead of columns, the `axis` parameter ban be set accordingly:
+
+```python
+>>> planets.mean(axis='columns')
+```
+
+The `axis` parameters describe what is to be aggregated (the _columns_ of each
+row), not what the result should be!
+
+## Grouping
+
+Grouping allows to split a dataset up based on its values or index, perform
+computations within the groups and combine the group results together to
+overall results. Grouping is a three-step process:
+
+1. split: breaking up and grouping a `DataFrame` (based on the values of a
+   specified key or other property)
+2. apply: perform computations within each group:
+    1. filter: remove or retain values for further processing
+    2. transform: map the input values to output values
+    3. aggregate: reduce the multitude of values to a single value (or a
+       smaller amount of values)
+    4. apply: perform computations on the aggregation result(s)
+3. combine: merge the results to a single resulting dataset
+
+The `groupby()` method allows to perform those three steps together in an
+efficient way. When called on a `DataFrame`, it returns a `DataFrameGroupBy`
+object, which is a special (grouped) view onto the underlying `DataFrame`:
+
+```python
+>>> import seaborn as sns
+>>> planets = sns.load_dataset('planets')
+>>> planets.groupby('year')
+<pandas.core.groupby.groupby.DataFrameGroupBy object at 0x7f9db32f2eb8>
+```
+
+A `DataFrameGroupBy` is a collection of `DataFrame`s that allows for the
+operations filter, transform, aggregate and apply.  No computation is performed
+until an aggregation is applied (lazy evaluation), which returns a new
+`DataFrame`:
+
+```python
+>>> planets.groupby('year').sum()
+      number  orbital_period       mass  distance
+year
+1989       1       83.888000   11.68000     40.57
+1992       6       91.803900    0.00000      0.00
+1994       3       98.211400    0.00000      0.00
+...
+```
+
+Selecting a column on a `DataFrameGroupBy` object returns a `SeriesGroupBy`
+object, which can be also used for aggregations and the like:
+
+```python
+>>> planets.groupby('year')['distance']
+<pandas.core.groupby.groupby.SeriesGroupBy object at 0x7f9db3224f60>
+```
+
+A `GroupBy` object allows to iterate over the individual groups, yielding the
+group key and the `DataFrame`:
+
+```python
+>>> for (key, df) in planets.groupby('year'):
+        print(key, ', '.join(df.columns))
+1989 method, number, orbital_period, mass, distance, year
+1992 method, number, orbital_period, mass, distance, year
+1994 method, number, orbital_period, mass, distance, year
+...
+```
+
+However, the `apply()` method is usually faster and more convenient than an
+explicit iteration.
+
+When a method of a `DataFrame` is called on a `GroupBy` object, it is
+dispatched to each of the underlying `DataFrame` objects:
+
+```python
+>>> planets.groupby('year').first()
+               method  number  orbital_period     mass  distance
+year
+1989  Radial Velocity       1       83.888000  11.6800     40.57
+1992    Pulsar Timing       3       25.262000      NaN       NaN
+1994    Pulsar Timing       3       98.211400      NaN       NaN
+...
+```
+
+As mentioned earlier, after grouping and before combining the data, different
+operations can be performed on the grouped data.
+
+The `filter()` method executes a predicate function (or lambda expression) on
+every entry, retains it in the dataset (matching condition) or discards it from
+the dataset (not matching condition). The predicate function/lambda expression
+expects a `DataFrame` and returns a boolean:
+
+```python
+>>> teams = ['Mercedes', 'Mercedes', 'Ferrari', 'Ferrari']
+>>> drivers = ['Hamilton', 'Bottas', 'Vettel', 'Raikkoennen']
+>>> points = [408, 247, 320, 251]
+>>> championship = df.DataFrame(
+        {'team': teams, 'driver': drivers, 'points': points})
+>>> championship
+       team       driver  points
+0  Mercedes     Hamilton     408
+1  Mercedes       Bottas     247
+2   Ferrari       Vettel     320
+3   Ferrari  Raikkoennen     251
+
+>>> championship.groupby('team').filter(lambda x: x['points'].mean() > 300)
+       team    driver  points
+0  Mercedes  Hamilton     408
+1  Mercedes    Bottas     247
+```
+
+The `DataFrame` is grouped by team. For every team the mean of points scored is
+calculated, and only entries with a team's point mean above 300 are retained.
+This filtering uses a predicate function:
+
+```python
+>>> def below_600(x):
+        return x['points'].sum() < 600
+>>> championship.groupby('team').filter(below_600)
+      team       driver  points
+2  Ferrari       Vettel     320
+3  Ferrari  Raikkoennen     251
+```
+
+The `transform()` method allows to map the input data record by record to
+output data of the same shape:
+
+```python
+>>> championship.groupby('team')['points'].transform(lambda x: x / x.mean())
+0    1.245802
+1    0.754198
+2    1.120841
+3    0.879159
+```
+
+Each driver's ratio of points scored to the team is computed in terms of mean
+points per team. Notice that the `points` column was selected, so `x` refers to
+a `Series`, not to a `DataFrame`.
+
+The `aggregate()` method allows to reduce a group in two fundamental ways:
+
+First, by applying one or more aggregation functions that are passed either as
+a function or as a function name (string):
+
+```python
+>>> championship.groupby('team').aggregate([min, 'max'])
+               driver           points
+                  min       max    min  max
+team
+Ferrari   Raikkoennen    Vettel    251  320
+Mercedes       Bottas  Hamilton    247  408
+```
+
+Second, by applying different aggregation functions for each column, by
+providing a dictionary that maps a function to every column:
+
+```python
+>>> championship['position'] = [1, 5, 2, 3]
+>>> championship.groupby('team').aggregate({'points': max, 'position': min})
+          points  position
+team
+Ferrari      320         2
+Mercedes     408         1
+```
+
+The `apply()` method allows to execute a function on every group result. It
+takes a `DataFrame`/`Series` and returns either a `DataFrame`/`Series` object,
+or the function reduces the group results further to a single scalar:
+
+```python
+>>> championship.groupby('team')['points'].apply(sum)
+team
+Ferrari     571
+Mercedes    655
+Name: points, dtype: int64
+```
+
+The grouping of the data is not limited to a single column name. Different
+alternatives are available.
+
+First, provide a list/array/series/index of group keys, telling every entry in
+which group to go:
+
+```python
+>>> names = ['Harry Potter', 'Draco Malfoy', 'Hermine Granger', 'Ron Weasley']
+>>> students = pd.Series(names)
+>>> houses = ['Griffindor', 'Slytherin', 'Griffindor', 'Griffindor']
+>>> students.groupby(houses).apply(lambda s: ', '.join(s))
+Griffindor    Harry Potter, Hermine Granger, Ron Weasley
+Slytherin                                   Draco Malfoy
+dtype: object
+```
+
+Second, provide a dictionary that maps the index keys to groups:
+
+```python
+>>> courses = ['Math', 'English', 'History', 'Geography', 'Music', 'Biology']
+>>> results = ['A', 'C', 'E', 'B', 'D', 'F']
+>>> grouping = {'A': 'good', 'B': 'good', 'C': 'ok', 'D': 'ok', 'E': 'bad', 'F': 'bad'}
+>>> marks = pd.DataFrame({'course': courses, 'result': results})
+>>> marks = marks.set_index('result')
+>>> marks
+           course
+result
+A            Math
+C         English
+E         History
+B       Geography
+D           Music
+F         Biology
+
+>>> marks.groupby(grouping).aggregate(lambda c: ', '.join(c))
+                course
+bad   History, Biology
+good   Math, Geography
+ok      English, Music
+```
+
+Third, provide any function that maps a input (index) to a output (group):
+
+```python
+>>> lectures = ['Math: Calculus', 'Math: Statistics',
+        'Computer Science: Algorithms', 'Computer Science: Data Structures']
+>>> professors = ['Smith', 'Myers', 'Dijkstra', 'Kernighan']
+>>> plan = pd.DataFrame({'lecture': lectures, 'professor': professors})
+>>> plan = plan.set_index('lecture')
+>>> plan
+                                   professor
+lecture
+Math: Calculus                         Smith
+Math: Statistics                       Myers
+Computer Science: Algorithms        Dijkstra
+Computer Science: Data Structures  Kernighan
+
+>>> plan.groupby(lambda l: l.split(':')[0]).aggregate(lambda p: ', '.join(p))
+                            professor
+Computer Science  Dijkstra, Kernighan
+Math                     Smith, Myers
+```
+
+And fourth, use a combination thereof, which results in a `MultiIndex`:
+
+```python
+>>> marks.groupby([str.lower, grouping]).aggregate(lambda m: ' '.join(m))
+           course
+a good       Math
+b good  Geography
+c ok      English
+d ok        Music
+e bad     History
+f bad     Biology
+```
+
+## Miscellaneous
+
+Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
+`countries.csv`, it can be read as follows:
+
+```csv
+Country, Population, Area
+USA, 326625792, 9147593
+Russia, 142257520, 16377742
+Germany, 80594016, 348672
+Switzerland, 8236303, 39997
+```
+
+```python
+>>> countries = pd.read_csv('countries.csv')
+>>> countries
+       Country   Population      Area
+0          USA    326625792   9147593
+1       Russia    142257520  16377742
+2      Germany     80594016    348672
+3  Switzerland      8236303     39997
+```
