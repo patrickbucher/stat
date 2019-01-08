@@ -2090,6 +2090,114 @@ e bad     History
 f bad     Biology
 ```
 
+## Pivot Tables
+
+Pivot Tables are essentially a multidimensional version of the GroupBy
+aggregation. A `DataFrame` can be analyzed in two dimensions. In terms of
+GroupBy, the split and combine steps are performed along a two-dimensional
+grid, and the two dimensions can be defined (as `index` and `columns`).
+
+The "titanic" dataset of the Seaborn package is a good example for a
+multidimensional analysis. This GroupBy operation aggregates the survival rates
+by both sex _and_ class:
+
+```python
+>>> titanic.groupby(['sex', 'class'])['survived'].aggregate('mean').unstack()
+class      First    Second     Third
+sex
+female  0.968085  0.921053  0.500000
+male    0.368852  0.157407  0.135447
+```
+
+The instruction reads as "group by `sex` and `class`, select the `survived`
+column, calculate the mean thereof, and display the result in a two-dimensional
+view".
+
+The same result can be achieved with less typing using the `pivot_table()`
+method:
+
+```python
+>>> titanic.pivot_table('survived', index='sex', columns='class')
+class      First    Second     Third
+sex
+female  0.968085  0.921053  0.500000
+male    0.368852  0.157407  0.135447
+```
+
+Calculating the mean is the default aggregation of the `pivot_table()` method.
+The instruction reads as "calculate the mean of the `survived` column by sex
+and class".
+
+Grouping is not restricted to single values. More dimensions can be brought in
+by providing a list of criteria.
+
+The `cut()` method categorizes a series of values using the given boundaries.
+The age categories are then used as an additional (third) dimension:
+
+```python
+>>> age = pd.cut(titanic['age'], [0, 18, 80])
+>>> titanic.pivot_table('survived', ['sex', age], 'class')
+class               First    Second     Third
+sex    age
+female (0, 18]   0.909091  1.000000  0.511628
+       (18, 80]  0.972973  0.900000  0.423729
+male   (0, 18]   0.800000  0.600000  0.215686
+       (18, 80]  0.375000  0.071429  0.133663
+```
+
+The `qcut()` method splits up a series of values to the given number of
+quantiles. The fare quantiles are then used as an additional (fourth)
+dimension:
+
+```python
+>>> fare = pd.qcut(titanic['fare'], 2)
+>>> titanic.pivot_table('survived', ['sex', age], [fare, 'class'])
+fare            (-0.001, 14.454]                     (14.454, 512.329]
+class                      First    Second     Third             First    Second     Third
+sex    age
+female (0, 18]               NaN  1.000000  0.714286          0.909091  1.000000  0.318182
+       (18, 80]              NaN  0.880000  0.444444          0.972973  0.914286  0.391304
+male   (0, 18]               NaN  0.000000  0.260870          0.800000  0.818182  0.178571
+       (18, 80]              0.0  0.098039  0.125000          0.391304  0.030303  0.192308
+```
+
+The `pivot_table()` method has a lot of additional parameters. Its signature
+looks as follows:
+
+```python
+DataFrame.pivot_table(values=None, index=None, columns=None, aggfunc='mean',
+                      fill_values=None, margins=False, dropna=True,
+                      margins_name='All')
+```
+
+The parameters have the following meaning:
+
+- `values`: the column of interest (to be aggregated)
+- `index`: the y-axis group keys
+- `columns`: the x-axis group keys
+- `aggfunc`: the aggregation to be performed on `values`
+    - accepts either a list of functions
+    - or a dictionary specifying column/aggregation pairs (`values` can be
+      omitted)
+- `fill_value`: value to use for empty fields
+- `margins`: whether or not to compute totals
+- `dropna`: whether or not to ignore `NaN` entries
+- `margins_name`: labels for the margin totals (default: `'All'`)
+
+Example:
+
+```python
+>>> titanic.pivot_table(values='survived', index='embark_town', columns='alone',
+                        aggfunc='mean', fill_value=False, margins=True,
+                        dropna=True, margins_name='survival rate')
+alone             False      True  survival rate
+embark_town
+Cherbourg      0.674699  0.435294       0.553571
+Queenstown     0.350000  0.403509       0.389610
+Southampton    0.462151  0.256997       0.336957
+survival rate  0.505650  0.300935       0.382452
+```
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
