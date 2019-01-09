@@ -2198,6 +2198,130 @@ Southampton    0.462151  0.256997       0.336957
 survival rate  0.505650  0.300935       0.382452
 ```
 
+## Vectorized String Operations
+
+Real-world datasets often contain a lot of messy string data. Pandas supports
+vectorized string operations that can easily be applied on entire columns or
+datasets without worrying about the shape of the data or missing values.
+Vectorized operations are also more efficient than explicitly iterating over
+the values and calling the operation on each value.
+
+`Series` and `Index` objects have a `str` attribute that provides functionality
+to deal with the underlying strings. (A column of a `DataFrame` is a `Series`
+and therefore also has a `str` attribute.)
+
+Pandas implements a good deal of Python's native string and regular expression
+functions as methods of the `str` attribute, which are demonstrated on the
+following dataset:
+
+```python
+>>> names = ['Dilbert', 'Alice', 'Wally', 'Pointy Haired Boss']
+>>> notes = ['nerdy, whiny', 'aggressive, grumpy', 'lazy, dorky', 'clueless, cocky']
+>>> review = pd.DataFrame({'employees': names, 'properties': notes})
+>>> review
+            employees          properties
+0             Dilbert        nerdy, whiny
+1               Alice  aggressive, grumpy
+2               Wally         lazy, dorky
+3  Pointy Haired Boss     clueless, cocky
+```
+
+Predicate methods check a property of a string and return a `boolean` value
+indicating whether or not the property in question applies to it:
+
+| Method               | Description                           |
+|----------------------|---------------------------------------|
+| `startswith(prefix)` | begins with `prefix`?                 |
+| `endswith(suffix)`   | begins with `suffix`?                 |
+| `isalnum()`          | consists of letters and digits only?  |
+| `isalpha()`          | consists of letters only?             |
+| `isdigit()`          | consists of digits only? (like 3, 2²) |
+| `isnumeric()`        | is a numeric expression? (like ½, 2²) |
+| `isdecimal()`        | is a numeric expression? (like 123)   |
+| `isspace()`          | consists of spaces only?              |
+| `istitle()`          | is every word written in title case?  |
+| `islower()`          | consists of lower case letters only?  |
+| `isupper()`          | consists of upper case letters only?  |
+
+These methods perform a transformation on the underlying string and return
+the result of that tranformation:
+
+| Method                      | Description                                              |
+|-----------------------------|----------------------------------------------------------|
+| `ljust(width)`              | left align to `width`                                    |
+| `rjust(width)`              | right align to `width`                                   |
+| `center(width)`             | center align to `width`                                  |
+| `pad(width, side)`          | justify to `width` with `side` ('left', 'right', 'both') |
+| `zfill(width)`              | fill up with `0` from left to `width`                    |
+| `strip()`                   | remove trailing whitespace                               |
+| `lstrip()`                  | remove trailing whitespace on the left                   |
+| `rstrip()`                  | remove trailing whitespace on the right                  |
+| `wrap(n)`                   | add newline after `n` characters                         |
+| `join(s)`                   | separate characters with string `s`                      |
+| `cat()`                     | concatenate the strings                                  |
+| `upper()`                   | all upper case letters                                   |
+| `lower()`                   | all lower case letters                                   |
+| `capitalize()`              | first letter of first word upper case                    |
+| `swapcase()`                | upper to lower, and lower to upper case                  |
+| `translate(table)`          | apply map of translation rules in `table`                |
+| `normalize(form)`           | 'NFC', 'NFKC', 'NFD' or 'NFKD' unicode normalization     |
+| `repeat(n)`                 | repeats the string `n` times                             |
+| `slice_replace(a, z, repl)` | replaces the slice `[a:z]` with `repl`                   |
+| `get(i)`/`[i]`              | get character at index `i`                               |
+| `slice(a, z, s)`/`[a:z:s]`  | slice (from `a` to `z` with step `s`)
+
+The `translate` method requires a table, which can be created using the
+`string` method `maketrans`:
+
+```python
+>>> table = str.maketrans({'t': 'th', 'i': 'y'})
+>>> review['employees'].str.translate(table)
+0               Dylberth
+1                  Alyce
+2                  Wally
+3    Poynthy Hayred Boss
+```
+
+The following miscellaneous methods return neither a `boolean` value nor a
+modified string, but either a number or other data structure:
+
+| Method             | Description                                                              |
+|--------------------|--------------------------------------------------------------------------|
+| `len()`            | length in characters                                                     |
+| `find(s)`          | start index of substring `s` (-1 if not contained)                       |
+| `rfind(s)`         | like `find()`, but starts from the end                                   |
+| `index(s, a, z)`   | like `find()` with range `a:z` (`ValueError` if not contained)           |
+| `rindex(s, a, z)`  | like `index()`, but starts from the end                                  |
+| `partition(sep)`   | split into three parts: before, `sep`, after (default `sep`: whitespace) |
+| `rpartition(sep)`  | like `partition()`, but starts from the end                              |
+| `get_dummies(sep)` | transform encoded string into `DataFrame` using `sep` to split values    |
+
+The `get_dummies()` method is especially useful when meaning is encoded into a
+string using multiple, separated values:
+
+```python
+>>> review['properties'].str.get_dummies(', ')
+   aggressive  clueless  cocky  dorky  grumpy  lazy  nerdy  whiny
+0           0         0      0      0       0     0      1      1
+1           1         0      0      0       1     0      0      0
+2           0         0      0      1       0     1      0      0
+3           0         1      1      0       0     0      0      0
+```
+
+These methods implement functionality from Python's regular expression library
+(`re`):
+
+| Method               | Description                                      |
+|----------------------|--------------------------------------------------|
+| `match(pat)`         | does the pattern `pat` match?  (see `re.match`)  |
+| `contains(str)`      | is the string `str` contained? (see `re.search`) |
+| `extract(pat)`       | extracts the groups from the pattern `pat`       |
+| `findall(pat)`       | returns all occurences matching `pat`            |
+| `replace(pat, repl)` | replaces occurences of `pat` with `repl`         |
+| `count(pat)`         | number of matches of `pat`                       |
+| `split(pat)`         | split at matches of `pat`                        |
+| `rsplit(pat)`        | like `split()`, but starts from the end          |
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
@@ -2219,4 +2343,40 @@ Switzerland, 8236303, 39997
 1       Russia    142257520  16377742
 2      Germany     80594016    348672
 3  Switzerland      8236303     39997
+```
+
+Data can also be read from JSON files, like `countries.json`, which can be read
+as follows:
+
+```json
+{
+  "country": [
+    "USA",
+    "Russia",
+    "Germany",
+    "Switzerland"
+  ],
+  "population": [
+    326625792,
+    142257520,
+    80594016,
+    8236303
+  ],
+  "area": [
+    9147593,
+    16377742,
+    348672,
+    39997
+  ]
+}
+```
+
+```python
+>>> countries = pd.read_json('countries.json')
+>>> countries
+       country  population      area
+0          USA   326625792   9147593
+1       Russia   142257520  16377742
+2      Germany    80594016    348672
+3  Switzerland     8236303     39997
 ```
