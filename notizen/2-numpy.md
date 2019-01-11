@@ -1106,3 +1106,54 @@ The syntax is more convenient, but the performance of the access is lower.
 NumPy's structured arrays are a very efficient way to store structured data.
 However, the Pandas library offers much more functionality for working with
 structured data.
+
+## Date and Time
+
+Python's capabilities for handling date and time information, such as the
+modules `datetime`, `dateutil` and `pytz`, are convenient to use, but are too
+slow when it comes to big datasets.
+
+NumPy defines its own type for that purpose: `datetime64`, which encodes date
+and time information as 64-bit integers, and can be used for vectorized
+operations:
+
+```python
+>>> new_year = np.array('2019-01-01', dtype=np.datetime64)
+>>> first_week = new_year + np.arange(7)
+>>> first_week
+array(['2019-01-01', '2019-01-02', '2019-01-03', '2019-01-04',
+       '2019-01-05', '2019-01-06', '2019-01-07'], dtype='datetime64[D]')
+```
+
+The `timedelta64` data type is used to express the period between two points in
+time. Both `datetime64` and `timedelta64` are based on a _fundamental time
+unit_ and can express a range of 2⁶⁴ times that unit. There is a trade-off
+between resolution (precision) and range (time span): The smaller the
+fundamental time unit is chosen, the more precision and the less time span can
+be expressed. The fundamental time unit can be defined as follows:
+
+```python
+>>> np.datetime64('2019-01-01', 'ns') # 'ns': nanoseconds
+numpy.datetime64('2019-01-01T00:00:00.000000000')
+```
+
+The options available are:
+
+- `Y`: year
+- `M`: month
+- `W`: week
+- `D`: day
+- `h`: hour
+- `m`: minute 
+- `s`: second
+- `ms`: millisecond
+- `us`: microsecond
+- `ns`: nanosecond
+- `ps`: picosecond
+- `fs`: femtosecond
+- `as`: attosecond
+
+Nanoseconds are a good compromise, for they are as precise as regular computers
+and and have a time span of about 500 years (now ± 250 years).
+
+NumPy infers the time-zone automatically from the operating system.
