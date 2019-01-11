@@ -2322,6 +2322,146 @@ These methods implement functionality from Python's regular expression library
 | `split(pat)`         | split at matches of `pat`                        |
 | `rsplit(pat)`        | like `split()`, but starts from the end          |
 
+## Time Series
+
+Pandas has strong capabilities to deal with dates, times and data indexed by
+date and time. The notion of time can be expressed in different concepts:
+
+- _Time stamps_ refer to a particular moment, like June 24th 1987, 8:25 a.m.
+- _Time intervals_ and _periods_ express a length of time between a beginning
+  and an end point, like the year 2019 or the second week of 2019.
+    - _Periods_ are a special kind of interval: They do not overlap with other
+      intervals and are of uniform length, like a day or an hour.
+- _Time deltas_ or _durations_ express an exact length of time, like 9.87
+  seconds.
+
+Pandas capabilities for dealing with date and time set up on Python's native
+date and time tools.
+
+Python's built-in `datetime` module with the `datetime` type is useful for
+expressing single dates:
+
+```python
+>>> from datetime import datetime
+>>> birth = datetime(year=1987, month=6, day=24, hour=8, minute=25)
+>>> birth
+datetime.datetime(1987, 6, 24, 8, 25)
+
+>>> birth.strftime('%A') # %A: day of week
+'Wednesday'
+```
+
+The third-party `dateutil` module can parse dates of various string formats:
+
+```python
+>>> from dateutil import parser
+>>> birth = parser.parse("24th of June, 1987 at 8:25 a.m")
+>>> birth
+datetime.datetime(1987, 6, 24, 8, 25)
+
+>>> birth.strftime('%A') # %A: day of week
+'Wednesday'
+```
+
+The third-party `pytz` module helps to deal with time zones.
+
+Those tools are convenient, but do not scale for big data sets consisting of
+date and time information. One alternative is NumPy's `datetime64` type.
+
+A better alternative in the context of Pandas is the `Timestamp` object, which
+combines the comfort of Python's native `datetime` and third-party `dateutil`
+with the efficiency of NumPy's `datetime64`.
+
+Dates can be parsed as with `dateutil`:
+
+```python
+>>> birth = pd.to_datetime("24th of June, 1987 at 8:25 a.m.")
+>>> birth
+Timestamp('1987-06-24 08:25:00')
+
+>>> birth.strftime('%A')
+'Wednesday'
+```
+
+Vectorized operations on dates can be performed as efficiently as with NumPy's
+`datetime64` type:
+
+```python
+>>> date = pd.to_datetime("1st of January 2019")
+>>> date + pd.to_timedelta(range(3), 'D')
+DatetimeIndex(['2019-01-01', '2019-01-02', '2019-01-03'], dtype='datetime64[ns]', freq=None)
+```
+
+A `DatetimeIndex` is used to index `Timestamp` objects in a `Series` or
+`DataFrame`. It offers powerful slicing and indexing operations:
+
+```python
+>>> index = pd.DatetimeIndex(['2015-01-01', '2016-04-01', '2017-07-01', '2018-10-01'])
+>>> dates = pd.Series(range(4), index=index)
+>>> dates
+2015-01-01    0
+2016-04-01    1
+2017-07-01    2
+2018-10-01    3
+dtype: int64
+
+>>> dates['2016-01-01':'2017-12-31'] # slicing
+2016-04-01    1
+2017-07-01    2
+dtype: int64
+
+>>> dates['2016'] # indexing
+2016-04-01    1
+dtype: int64
+```
+
+Pandas implements the different time concepts with different data types and
+indices:
+
+| Concept             | Type        | Index Type       | Python/NumPy Type         |
+|---------------------|-------------|------------------|---------------------------|
+| Time Stamp          | `Timestamp` | `DatetimeIndex`  | `datetime`/`datetime64`   |
+| Time Period         | `Period`    | `PeriodIndex`    | -/`datetime64`            |
+| Time Delta/Duration | `Timedelta` | `TimedeltaIndex` | `timedelta`/`timedelta64` |
+
+These types and indices can be used directly, but Pandas offers convenience
+functions for easier parsing and handling of entire `Series`.
+
+The `pd.to_datetime()` function yields a `Timestamp` if a single date is
+passed, and a `DatetimeIndex` if a series of dates (in any format) is passed:
+
+```python
+>>> date pd.to_datetime('2018-12-24')
+>>> date
+Timestamp('2018-12-24 00:00:00')
+
+>>> index = pd.to_datetime(['2018-03-17', '25th of March 1992',
+                            datetime(2019, 6, 24), '1984-Jul-20', '20190101'])
+DatetimeIndex(['2018-03-17', '1992-03-25', '2019-06-24', '1984-07-20',
+               '2019-01-01'],
+              dtype='datetime64[ns]', freq=None)
+```
+
+A `DatetimeIndex` can be converted to a `PeriodIndex` using the `to_period()`
+method by indicating a frequency code, like `'D'` for days:
+
+```python
+>>> periods = index.to_period('D')
+PeriodIndex(['2018-03-17', '1992-03-25', '2019-06-24', '1984-07-20',
+             '2019-01-01'],
+            dtype='period[D]', freq='D')
+```
+
+A `timedeltaIndex`, describing the difference between dates, can be created by
+a subtraction, for example:
+
+```python
+>>> deltas = index - index[0]
+>>> deltas
+TimedeltaIndex(['0 days', '-9488 days', '464 days', '-12293 days', '290 days'],
+               dtype='timedelta64[ns]', freq=None)
+```
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
