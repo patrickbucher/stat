@@ -2462,6 +2462,159 @@ TimedeltaIndex(['0 days', '-9488 days', '464 days', '-12293 days', '290 days'],
                dtype='timedelta64[ns]', freq=None)
 ```
 
+### Sequences
+
+Pandas offers convenience functions to create regular date sequences. Like
+Python's `range()` and NumPy's `np.arange()`, they accept a beginning and end
+point, and an optional frequency.
+
+A sequence of dates can be created using the `pd.date_range()` function:
+
+```python
+>>> pd.date_range('2018-01-01', '2018-01-08')
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-06', '2018-01-07', '2018-01-08'],
+              dtype='datetime64[ns]', freq='D')
+```
+
+Instead of defining an end date, the number of periods can be defined:
+
+
+```python
+>>> pd.date_range('2018-01-01', periods=8)
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-06', '2018-01-07', '2018-01-08'],
+              dtype='datetime64[ns]', freq='D')
+```
+
+Any combination of two indications (start, end, frequency) is enough to create
+a sequence:
+
+```python
+>>> pd.date_range(start='2018-01-01', end='2018-01-08') # start and end
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-06', '2018-01-07', '2018-01-08'],
+              dtype='datetime64[ns]', freq='D')
+
+>>> pd.date_range(start='2018-01-01', periods=8) # start and periods
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-06', '2018-01-07', '2018-01-08'],
+              dtype='datetime64[ns]', freq='D')
+
+>>> pd.date_range(end='2018-01-08', periods=8) # end and periods
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-06', '2018-01-07', '2018-01-08'],
+              dtype='datetime64[ns]', freq='D')
+
+>>> pd.date_range(start='2018-01-01', end='2018-01-08', periods=4) # all three
+DatetimeIndex(['2018-01-01 00:00:00', '2018-01-03 08:00:00',
+               '2018-01-05 16:00:00', '2018-01-08 00:00:00'],
+              dtype='datetime64[ns]', freq=None)
+```
+
+The frequency defaults to one day. In the last example, where start, end _and_
+periods were given, no fixed frequency is used, but calculated to evenly
+distribute the dates between start and end.
+
+A frequency can be defined using the `freq` parameter:
+
+```python
+>>> pd.date_range(start='2018-01-01', periods=4, freq='H')
+DatetimeIndex(['2018-01-01 00:00:00', '2018-01-01 01:00:00',
+               '2018-01-01 02:00:00', '2018-01-01 03:00:00'],
+              dtype='datetime64[ns]', freq='H')
+
+>>> pd.date_range(start='2018-01-01', periods=4, freq='M')
+DatetimeIndex(['2018-01-31', '2018-02-28', '2018-03-31', '2018-04-30',
+               '2018-05-31', '2018-06-30', '2018-07-31', '2018-08-31'],
+              dtype='datetime64[ns]', freq='M')
+```
+
+Regular sequences of periods can be created using the `period_range()`
+function:
+
+```python
+>>> pd.period_range('2018-01', periods=12, freq='M')
+PeriodIndex(['2018-01', '2018-02', '2018-03', '2018-04', '2018-05', '2018-06',
+             '2018-07', '2018-08', '2018-09', '2018-10', '2018-11', '2018-12'],
+            dtype='period[M]', freq='M')
+```
+
+Regular sequences of durations/time deltas can be created using the
+`timedelta_range()` function:
+
+```python
+>>> pd.timedelta_range(0, periods=10, freq='H')
+TimedeltaIndex(['00:00:00', '01:00:00', '02:00:00', '03:00:00', '04:00:00',
+                '05:00:00', '06:00:00', '07:00:00', '08:00:00', '09:00:00'],
+               dtype='timedelta64[ns]', freq='H')
+```
+
+Pandas offers the following _date_ frequencies (at either the start or end of
+each period):
+
+| Code  | Frequency              | Code | Frequency            |
+|-------|------------------------|------|----------------------|
+| `AS`  | year start             | `A`  | year end             |
+| `BAS` | business year start    | `BA` | business year end    |
+| `QS`  | quarter start          | `Q`  | quarter end          |
+| `BQS` | business quarter start | `BQ` | business quarter end |
+| `MS`  | month start            | `M`  | month end            |
+| `BMS` | business month start   | `BM` | business month end   |
+
+And these _time_ frequencies:
+
+| Code | Frequency     | Code | Frequency   |
+|------|---------------|------|-------------|
+| `W`  | week          | `T`  | minute      |
+| `D`  | day           | `S`  | second      |
+| `B`  | business day  | `L`  | millisecond |
+| `H`  | hour          | `U`  | microsecond |
+| `BH` | business hour | `N`  | nanosecond  |
+
+Quarter and year frequencies can be marked with a month suffix, weekly
+frequencies can be marked with a day suffix in order to specify the split
+points:
+
+```python
+>>> pd.date_range('2018-01-01', periods=8, freq='QS-JAN')
+DatetimeIndex(['2018-01-01', '2018-04-01', '2018-07-01', '2018-10-01',
+               '2019-01-01', '2019-04-01', '2019-07-01', '2019-10-01'],
+              dtype='datetime64[ns]', freq='QS-JAN')
+
+>>> pd.date_range('2018-01-01', periods=8, freq='AS-JUL')
+DatetimeIndex(['2018-07-01', '2019-07-01', '2020-07-01', '2021-07-01',
+               '2022-07-01', '2023-07-01', '2024-07-01', '2025-07-01'],
+              dtype='datetime64[ns]', freq='AS-JUL')
+
+>>> pd.date_range('2018-01-01', periods=8, freq='W-SUN')
+DatetimeIndex(['2018-01-07', '2018-01-14', '2018-01-21', '2018-01-28',
+               '2018-02-04', '2018-02-11', '2018-02-18', '2018-02-25'],
+              dtype='datetime64[ns]', freq='W-SUN')
+```
+
+The frequency codes refer to instances of the module `pandas.tseries.offsets`
+and can used as functions:
+
+```python
+>>> pd.date_range('2018-01-01', periods=8, freq=BDay())
+DatetimeIndex(['2018-01-01', '2018-01-02', '2018-01-03', '2018-01-04',
+               '2018-01-05', '2018-01-08', '2018-01-09', '2018-01-10'],
+              dtype='datetime64[ns]', freq='B')
+```
+
+Frequency codes can be combined with additional numbers to create custom
+periods, such as 1 hour and 45 minutes:
+
+```python
+>>> pd.date_range('2018-01-01', periods=8, freq='23H15T')
+DatetimeIndex(['2018-01-01 00:00:00', '2018-01-01 23:15:00',
+               '2018-01-02 22:30:00', '2018-01-03 21:45:00',
+               '2018-01-04 21:00:00', '2018-01-05 20:15:00',
+               '2018-01-06 19:30:00', '2018-01-07 18:45:00'],
+              dtype='datetime64[ns]', freq='1395T')
+```
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
