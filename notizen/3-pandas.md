@@ -2615,6 +2615,90 @@ DatetimeIndex(['2018-01-01 00:00:00', '2018-01-01 23:15:00',
               dtype='datetime64[ns]', freq='1395T')
 ```
 
+### Resampling, Shifting, Windowing
+
+Resampling, Shifting and Windowing are useful operations to analyze time
+series. Analyzing stock prices is a important use case, and stock prices can be
+conveniently loaded with the `pandas-datareader` package from Yahoo Finance,
+for example the closing price of the Microsoft stock:
+
+```python
+>>> from pandas_datareader import data
+>>> msft = data.DataReader('MSFT', start='1986', end='2019', data_source='yahoo')
+>>> msft = msft['Close']
+>>> msft.describe()
+count    8269.000000
+mean       25.047959
+std        22.397970
+min         0.090278
+25%         2.992188
+50%        25.930000
+75%        32.345001
+max       115.610001
+Name: Close, dtype: float64
+```
+
+The stock price over time can be visualized using the matplot library, using
+the opticts from the seaborn package:
+
+```python
+>>> import matplotlib.pyplot as plt
+>>> import seaborn
+>>> seaborn.set()
+>>> msft.plot();
+>>> plt.show();
+```
+
+![Microsoft Stock Price](plots/msft-close.png)
+
+The time series can be resampled to a higher or lower frequency using the
+`resample()` method, which can be used to perform a data aggregation. The
+simpler `asfreq()` converts the frequency by simply selecting data (as opposed
+to aggregating them).
+
+Both methods are used here to visualize the stock price by business year
+compared to the daily closing prices:
+
+```python
+>>> msft.plot(style='-', alpha=0.5)
+>>> msft.resample('BA').mean().plot(style=':') # mean of business year
+>>> msft.asfreq('BA').plot(style='--') # business year's closing price
+>>> plt.legend(['original', 'resample', 'asfreq'], loc='upper left')
+>>> plt.show()
+```
+
+![Resampling and Frequency Conversion](plots/msft-resample-asfreq.png)
+
+Time shifts are useful to compute differences over time. The method `tshift()`
+can be used to shift the index values, whereas the method `shift()` shifts the
+data itself. The shift is specified in multiples of the underlying frequency:
+
+```python
+>>> cs = data.DataReader('CS', start='2000', end='2019', data_source='yahoo')
+>>> cs = cs['Close'].asfreq('D')
+>>> cs.plot()
+>>> cs.shift(365).plot()
+>>> plt.legend(['original', 'shift(365)'], loc='upper left')
+>>> plt.show()
+```
+
+![Shifting](plots/cs-shift.png)
+
+Rolling statistics can be used to perform different aggregations over a rolling
+data window, like the mean of the last 365 days relative to every day.
+
+```python
+>>> aapl = data.DataReader('AAPL', start='2000', end='2019', data_source='yahoo')
+>>> aapl = aapl['Close']
+>>> rolling = aapl.rolling(365, center=True)
+>>> aapl.plot()
+>>> rolling.mean().plot()
+>>> plt.legend(['original', 'mean over 365 days'], loc='upper left')
+>>> plt.show()
+```
+
+![Rolling Window](plots/aapl-rolling.png)
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
