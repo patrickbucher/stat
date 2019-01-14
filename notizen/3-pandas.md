@@ -2699,6 +2699,135 @@ data window, like the mean of the last 365 days relative to every day.
 
 ![Rolling Window](plots/aapl-rolling.png)
 
+## High-Performance Pandas: `eval()` and `query()`
+
+Even though vectorized operations in NumPy and Pandas are much more efficient
+than explicit iterations, compound expressions still cause a big memory
+overhead to store the intermediate steps.
+
+Consider this masking operation:
+
+```python
+>>> mask = (x > 0.5) & (y < 0.5)
+```
+
+Every intermediate step allocates memory, which becomes more obvious if the
+above expression is written as such:
+
+```python
+>>> tmp1 = (x > 0.5)
+>>> tmp2 = (< < 0.5)
+>>> mask = tmp1 & tmp2
+```
+
+Pandas `eval()` and `query()` methods, which are based on the
+[Numexpr](https://github.com/pydata/numexpr) package, can do without full-sized
+temporary arrays and hence are much lighter on memory consumtion then
+vectorized operations.
+
+The `eval()` function accepts a string expression describing an operation on
+`DataFrame`s:
+
+```python
+>>> %load_ext memory_profiler
+>>> n = 100_000_000
+>>> cols = 10
+>>> df1, df2, df3, df4 = (pd.DataFrame(np.random.random(n).reshape(n//cols, cols))
+                          for i in range(4))
+>>> %memit df1 + df2 + df3 + df4 # vectorized operation
+peak memory: 5175.80 MiB, increment: 1450.38 MiB
+
+>>> %memit sum = pd.eval('df1 + df2 + df3 + df4') # numeric expression
+peak memory: 4323.87 MiB, increment: 1159.55 MiB
+```
+
+Supported are arithmetic (`+`, `-`, `*`, `/), comparison (`==`, `!=`, `>`,
+`>=`, `<`, `<=`), bitwise resp. element-wise (`&`, `|`) and logical (`and`,
+`or`) operators, as well as indexing (`df['col']`) and attribute access
+(`df.attr`). Constructs like loops and function calls aren't available with
+`eval()`, but need direct use of the `Numexpr` package.
+
+`DataFrame` as its own `eval()` method. In addition to the features of the
+`pd.eval()` function, it supports direct column access by their names and
+access to variables:
+
+```python
+>>> n = 3_000_000
+>>> df = pd.DataFrame(np.random.random(n).reshape(n//3, 3),
+                      columns=['A', 'B', 'C'])
+
+>>> %memit (df['A'] + df['B']) / (df['C'] - 1) # vectorized operation
+peak memory: 123.24 MiB, increment: 19.62 MiB
+
+>>> %memit pd.eval('(df.A + df.B) / (df.C - 1)') # columns as attributes
+peak memory: 112.56 MiB, increment: 8.15 MiB
+
+>>> %memit df.eval('(A + B) / (C - 1)') # direct column access
+peak memory: 143.60 MiB, increment: 8.21 MiB
+
+>>> %memit df.eval('D = (A + B) / (C - 1)', inplace=True) # create new column
+peak memory: 166.62 MiB, increment: 30.73 MiB
+
+>>> %memit df.eval('D = (A + B) / C', inplace=True)
+peak memory: 166.66 MiB, increment: 0.00 MiB # overwrite existing column
+```
+
+Variables from the enclosing scope can be used with the `@` prefix (in order to
+distinguish them from columns):
+
+```python
+>>> mean = df['A'].mean()
+>>> %memit df.eval('D = (A + B) / (C - @mean)')
+peak memory: 227.79 MiB, increment: 61.04 MiB
+```
+
+Masking and filtering expressions cannot be expressed using the
+`DataFrame.eval()` method. The method `DataFrame.query()` makes this possible:
+
+```python
+>>> %memit df[(df.A > mean) & (df.B < mean)] # vectorized operation
+peak memory: 228.57 MiB, increment: 0.00 MiB
+
+>>> %memit pd.eval('df[(df.A > mean) & (df.B < mean)]') # pd.eval()
+peak memory: 230.36 MiB, increment: 1.88 MiB
+
+>>> %memit df.query('A > @mean and B < @mean') # DataFrame.query()
+peak memory: 230.98 MiB, increment: 0.00 MiB
+```
+
+Notice that the bitwise (element-wise) `&` operator has to be translated to
+`and` in the expression for the `query()` method.
+
+`eval()` and `query()` have some downsides:
+
+1. They deal with strings as opposed to Python syntax, which makes it harder to
+   detect syntax errors for both the human eye and tools.
+2. They have some computational overhead, which might outweigh the possible
+   savings on temporary memory usage by far.
+
+A good starting point in the decision between vectorized operations and
+`eval()`/`query()` is the size of a `DataFrame`:
+
+```python
+>>> n = 300_000
+>>> df = pd.DataFrame(np.random.random(n).reshape(n//3, 3),
+                      columns=['A', 'B', 'C'])
+>>> df.values.nbytes / (1024*1024) # size in megabytes
+2.288818359375
+```
+
+If a `DataFrame` doesn't fit into the CPU cache, heavy vectorized operations
+may cause the `DataFrame` to be moved from the ultra-fast cache to the slower
+memory. Using `eval()` and `query()` are potentially more efficient in those
+cases, but even then the gain in performance and saving in memory is marginal.
+
+The benefit becomes more obvious for big datasets (gigabytes). The intermediate
+steps create full copies of the underlying `DataFrame`, so that the data may
+not even fit into the memory and needs to be swapped on the disk. The
+computation might not even terminate if the computer runs out of swap space. In
+those cases, `eval()` and `query()` not only help saving memory, but also make
+some operations possible in the first place.
+
 ## Miscellaneous
 
 Pandas allows to read CSV files into a `DataFrame`. Given the CSV file
