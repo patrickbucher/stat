@@ -83,15 +83,15 @@ figure object created, if the magic command `%matplotlib` hasn't been used
 before:
 
 ```python
->>> import matplotlib as mpl
->>> import matplotlib.pyplot as plt
->>> import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 
->>> fig = plt.figure()
->>> x = np.linspace(0, 10, 100)
->>> plt.plot(x, np.sin(x))
->>> plt.plot(x, np.cos(x))
->>> fig.savefig('sin-x-cos-x.png')
+fig = plt.figure()
+x = np.linspace(0, 10, 100)
+plt.plot(x, np.sin(x))
+plt.plot(x, np.cos(x))
+fig.savefig('sin-x-cos-x.png')
 ```
 
 ![Plot of `sin(x)` and `cos(x)`](plots/sin-x-cos-x.png)
@@ -124,3 +124,69 @@ retrieved as a dictionary from a `figure` object:
  'svg': 'Scalable Vector Graphics',
  'svgz': 'Scalable Vector Graphics'}
 ```
+
+## Interfaces: MATLAB-style and Object Oriented
+
+Matplotlib started out as a Python alternative for MATLAB. The `plt` object
+represents the stateful interface known to MATLAB users. Plots created on the
+`plt` object are drawn to the figure and axes objects that have been created
+most recently.
+
+In this example, two subplots on a single figure are created:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+plt.figure() # create a new figure
+plt.subplot(2, 1, 1) # (row, column, panel): first panel on a 2*1 field
+plt.plot(x, np.sin(x)) # plot to the first subplot
+plt.subplot(2, 1, 2) # second panel on the same 2*1 field
+plt.plot(x, np.cos(x)) # plot to the second subplot
+plt.show()
+```
+
+![MATLAB-style interface: Subplots](plots/matlab-style-1.png)
+
+It is possible to plot on other figures/axes than the current active, but only
+if their references have been retrieved and stored using `plt.gcf()` (get
+current figure) and `plt.gca()` (get current axes):
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+plt.figure()
+plt.subplot(2, 1, 1)
+plt.plot(x, np.sin(x))
+first = plt.gca() # store reference to first aces
+plt.subplot(2, 1, 2)
+plt.plot(x, np.cos(x))
+first.plot(x, np.cos(x)) # also draw cosine on first axes
+plt.show()
+```
+
+![MATLAB-style interface: Draw to "inactive" Axes](plots/matlab-style-2.png)
+
+"Going back" is not possible if one fails to store the such references,
+especially in an interactive session. The object-oriented interface of
+Matplotlib doesn't rely on a _current state_, but requires the user to always
+explicitly refer to the figure/axes to be dealt with:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+fig, ax = plt.subplots(2)
+ax[0].plot(x, np.sin(x))
+ax[1].plot(x, np.cos(x))
+ax[0].plot(x, np.cos(x))
+plt.show()
+```
+
+The choice between the two interfaces is mostly a matter of preference for
+simple tasks. More complicated plots, however, do require the object-oriented
+approach.
