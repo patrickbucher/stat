@@ -190,3 +190,79 @@ plt.show()
 The choice between the two interfaces is mostly a matter of preference for
 simple tasks. More complicated plots, however, do require the object-oriented
 approach.
+
+## Line Plots
+
+Simple functions of the form `y=f(x)` can be visualized using line plots. The
+following examples require this boilerplate code:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+%matplotlib inline
+
+plt.style.use('seaborn-whitegrid') # simple style
+
+x = np.linspace(0, 10, 100) # 100 points in range 0..10
+```
+
+A figure, implemented by `plt.Figure`, contains all the graphics objects, like
+text, labels -- and the axes. A axes, implemented by `plt.Aces`, is a bounding
+box with ticks and labels, which contains the plotted lines. Conventionally,
+the objects are called `fig` and `ax`:
+
+```python
+fig = plt.figure()
+ax = plt.axes()
+```
+
+The sine function of the `x` values computed before can be drawn using the aces
+`plot()` method:
+
+```python
+ax.plot(x, np.sin(x)) # plot x and y=sin(x)
+```
+
+The MATLAB-style interface can be used alongsinde, plotting to the figure/axes
+used most recently:
+
+```python
+plt.plot(x, np.cos(x)) # plot x and y=cos(x)
+```
+
+The lines get a color assigned automatically from a predefined set. The colors
+can also be assigned manually using the `color` keyword of the `plot()` method.
+The following options are supported:
+
+- HTML color name: `blue`, `green`, `fuchsia` etc. (common HTML color names)
+- RGB/CMYK short code: `r`, `g`, `b`, `c`, `m`, `y`, `k`
+- Grayscale value: floating point number between `0` (black) and `1` (white)
+- RGB hex code: `#ff00aa`, `#efefef`
+- RGB tuple with floating point numbers between `0` and `1`: `(0.1, 0.75, 0.66)`
+
+The line style can be adjusted using the `linestyle` keyword. The following
+options are supported, both having a short and a long form:
+
+- `-`/`solid`
+- `--`/`dashed`
+- `-.`/`dashdot`
+- `:`/`dotted`
+
+```python
+ax.plot(x, np.sin(x-0), color='fuchsia', linestyle='-')
+ax.plot(x, np.sin(x-1), color='m', linestyle='--')
+ax.plot(x, np.sin(x-2), color='0.25', linestyle='-.')
+ax.plot(x, np.sin(x-3), color='#0a123b', linestyle=':')
+ax.plot(x, np.sin(x-4), color=(0.1, 0.75, 0.66))
+```
+
+![Line Colors and Styles](plots/line-color-style.png)
+
+The MATLAB-style interface `plt.plot()` accepts a shorthand style indicator as
+a third non-keyword argument, combining a line style with a a RGB/CMYK color
+code:
+
+```python
+plt.plot(x, np.sin(x-5), ':y') # dotted yellow line
+```
