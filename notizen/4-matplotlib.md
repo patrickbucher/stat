@@ -266,3 +266,105 @@ code:
 ```python
 plt.plot(x, np.sin(x-5), ':y') # dotted yellow line
 ```
+
+## Limits, Labels, Legends
+
+The axes limits can be set using the `plt.xlim()` and `plt.ylim()` function
+(MATLAB-style) or using the `ax.set_xlim()` and `ax.set_ylim()` method
+(OO-style) by passing a lower and a upper bound:
+
+```
+plt.xlim(-5, 5)
+plt.ylim(-1, 1)
+```
+
+A plot can be flipped along both axis by passing the arguments in reverse
+order (using an `axes` object here):
+
+```
+ax.set_xlim(5, -5)
+ax.set_ylim(1, -1)
+```
+
+The `plt.axis()` method allows to set both ranges at once by providing a list
+of the form `[xmin, xmax, ymin, ymax]`:
+
+```python
+plt.axis([-5, 5, -1, 1])
+```
+
+The ranges can be set automatically to just fit in the plot by using the
+`'tight'` parameter:
+
+```python
+plt.axis('tight')
+```
+
+The `'equal'` parameter makes sure the plot fits in and that the x and y axis
+are scaled equally:
+
+```python
+plt.axis('equal')
+```
+
+The axes object supports the same method: `ax.axis()`.
+
+Both axis and the plot as a whole can be labeled using the `plt.xlabel()`,
+`plt.ylabel()` and `plt.title()` function (MATLAB-style) or the
+`ax.set_xlabel()`, `ax.set_ylabel()`, `ax.set_title()` method (OO-style):
+
+```python
+plt.xlabel('x')
+plt.ylabel('y=sin(x)')
+plt.title('A Sine Curve')
+
+ax.set_xlabel('x')
+ax.set_ylabel('y=cos(x)')
+ax.set_title('A Cosine Curve')
+```
+
+Lines with different styles and colors can be labeled with a legend by calling
+the `plt.legend()` function or the `ax.legend()` method, which requires the
+individual plots (as opposed to its axis) to be labeled with the `plot()` call
+(keyword `label`):
+
+```python
+plt.plot(x, np.sin(x), '-g', label='sin(x)')
+plt.plot(x, np.cos(x), ':b', label='cos(x)')
+plt.legend()
+
+ax.plot(x, np.sin(x), color='green', linestyle='-', label='sin(x)')
+ax.plot(x, np.cos(x), color='blue', linestyle=':', label='cos(x)')
+ax.legend()
+```
+
+The `ax.set()` method is a convenient interface for setting limits (using
+tuples), labels and a title all at once:
+
+```python
+ax.set(xlim=(0, 10), ylim=(-1, 1),
+       xlabel='x', ylabel='sin(x)',
+       title='A Sine Curve')
+```
+
+Bringing it all together (in a script):
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 100)
+
+ax = plt.axes()
+ax.set(xlim=(0, 10), ylim=(-1, 1),
+       xlabel='x', ylabel='y',
+       title='Sine and Cosine')
+
+ax.plot(x, np.sin(x), color='green', linestyle='-', label='sin(x)')
+ax.plot(x, np.cos(x), color='blue', linestyle=':', label='cos(x)')
+ax.legend()
+
+plt.show()
+```
+
+![Limits, Labels, Legends](plots/limits-labels-legends.png)
