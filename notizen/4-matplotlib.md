@@ -368,3 +368,81 @@ plt.show()
 ```
 
 ![Limits, Labels, Legends](plots/limits-labels-legends.png)
+
+## Scatter Plots
+
+Scatter plots represetn the data points individually instead of joining them
+with a line. The `plt.plot()` function is capable of producing scatter plots,
+if the third argumetnis a character representing an according symbol, such as
+`'o'`, `'.'`, `','`, `'x'`, `'+'`, `'v'`, `'^'`, `'<'`, `'>'`, `'s'`, `'d'`:
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(0, 10, 50)
+plt.plot(x, np.sin(x), 'o', label='sin(x)')
+plt.plot(x, np.cos(x), 'x', label='cos(x)')
+
+plt.legend()
+plt.show()
+```
+
+![Sine and Cosine curve as a scatter plot](plots/scatter-sin-cos.png)
+
+The dots can be connected when combining the style parameter with a line style:
+
+```python
+plt.plot(x, np.sin(x), 'o-c', label='sin(x)') # dots & solid cyan line
+plt.plot(x, np.cos(x), 'x:m', label='cos(x)') # crosses & dotted magenta line
+```
+
+![Points connected with a line](plots/scatter-point-line.png)
+
+The lines and markers (points) can be further specified using the following
+arguments of the `plt.plot()` function:
+
+- `markersize`
+- `markerfacecolor`
+- `markeredgecolor`
+- `markeredgewidth`
+- `linewidth`
+
+```python
+plt.plot(x, np.sin(x), 'o-c', markersize=10, markerfacecolor='blue',
+         markeredgecolor='white', markeredgewidth=2, linewidth=3)
+```
+
+![Marker options](plots/scatter-marker-options.png)
+
+The function `plt.scatter()` can set the individual properties of each point by
+passing a list instead of a single value as the size and color parameters (`s`
+and `c`):
+
+```python
+n_points = 100
+rng = np.random.RandomState(0)
+x = rng.randn(n_points)
+y = rng.randn(n_points)
+
+colors = rng.randn(n_points)
+sizes = 500 * rng.randn(n_points)
+
+plt.scatter(x, y, c=colors, s=sizes, alpha=0.3)
+
+plt.colorbar()
+plt.show()
+```
+
+![Scatter plot with individual marker sizes and colors](plots/scatter-4d.png)
+
+This is useful for visualizing multi-dimensional data (four dimensions: x and y
+value, color and size).
+
+Because `plt.scatter()` figures out the rendering for each individual point
+separately, it can be slower than `plt.plot()`, especially when dealing with
+big data sets. If all the scatter points are to be drawn alike, `plt.plot()`
+should be prefered to `plt.scatter()`.
+
+The OO-style interface (`ax.plot()`, `ax.scatter()`) works with the same
+parameters.
