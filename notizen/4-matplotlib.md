@@ -94,7 +94,7 @@ plt.plot(x, np.cos(x))
 fig.savefig('sin-x-cos-x.png')
 ```
 
-![Plot of `sin(x)` and `cos(x)`](plots/sin-x-cos-x.png)
+![Plot of `sin(x)` and `cos(x)`](plots/sin-x-cos-x.png){width=426px}
 
 An image--no longer a plot!--can be loaded using IPython's `Image` object:
 
@@ -147,7 +147,7 @@ plt.plot(x, np.cos(x)) # plot to the second subplot
 plt.show()
 ```
 
-![MATLAB-style interface: Subplots](plots/matlab-style-1.png)
+![MATLAB-style interface: Subplots](plots/matlab-style-1.png){width=426px}
 
 It is possible to plot on other figures/axes than the current active, but only
 if their references have been retrieved and stored using `plt.gcf()` (get
@@ -168,7 +168,7 @@ first.plot(x, np.cos(x)) # also draw cosine on first axes
 plt.show()
 ```
 
-![MATLAB-style interface: Draw to "inactive" Axes](plots/matlab-style-2.png)
+![MATLAB-style interface: Draw to "inactive" Axes](plots/matlab-style-2.png){width=426px}
 
 "Going back" is not possible if one fails to store the such references,
 especially in an interactive session. The object-oriented interface of
@@ -257,7 +257,7 @@ ax.plot(x, np.sin(x-3), color='#0a123b', linestyle=':')
 ax.plot(x, np.sin(x-4), color=(0.1, 0.75, 0.66))
 ```
 
-![Line Colors and Styles](plots/line-color-style.png)
+![Line Colors and Styles](plots/line-color-style.png){width=426px}
 
 The MATLAB-style interface `plt.plot()` accepts a shorthand style indicator as
 a third non-keyword argument, combining a line style with a a RGB/CMYK color
@@ -367,7 +367,7 @@ ax.legend()
 plt.show()
 ```
 
-![Limits, Labels, Legends](plots/limits-labels-legends.png)
+![Limits, Labels, Legends](plots/limits-labels-legends.png){width=426px}
 
 ## Scatter Plots
 
@@ -388,7 +388,7 @@ plt.legend()
 plt.show()
 ```
 
-![Sine and Cosine curve as a scatter plot](plots/scatter-sin-cos.png)
+![Sine and Cosine curve as a scatter plot](plots/scatter-sin-cos.png){width=426px}
 
 The dots can be connected when combining the style parameter with a line style:
 
@@ -397,7 +397,7 @@ plt.plot(x, np.sin(x), 'o-c', label='sin(x)') # dots & solid cyan line
 plt.plot(x, np.cos(x), 'x:m', label='cos(x)') # crosses & dotted magenta line
 ```
 
-![Points connected with a line](plots/scatter-point-line.png)
+![Points connected with a line](plots/scatter-point-line.png){width=426px}
 
 The lines and markers (points) can be further specified using the following
 arguments of the `plt.plot()` function:
@@ -413,7 +413,7 @@ plt.plot(x, np.sin(x), 'o-c', markersize=10, markerfacecolor='blue',
          markeredgecolor='white', markeredgewidth=2, linewidth=3)
 ```
 
-![Marker options](plots/scatter-marker-options.png)
+![Marker options](plots/scatter-marker-options.png){width=426px}
 
 The function `plt.scatter()` can set the individual properties of each point by
 passing a list instead of a single value as the size and color parameters (`s`
@@ -434,7 +434,7 @@ plt.colorbar()
 plt.show()
 ```
 
-![Scatter plot with individual marker sizes and colors](plots/scatter-4d.png)
+![Scatter plot with individual marker sizes and colors](plots/scatter-4d.png){width=426px}
 
 This is useful for visualizing multi-dimensional data (four dimensions: x and y
 value, color and size).
@@ -446,3 +446,75 @@ should be prefered to `plt.scatter()`.
 
 The OO-style interface (`ax.plot()`, `ax.scatter()`) works with the same
 parameters.
+
+## Visualizing Errors
+
+In many applications, reporting the range of possible error is just as
+important as reporting the value itself.
+
+For discrete values, Matplotlib can plot error bars using the `plt.errorbar()`
+function. The error range, either on the x- or y-axis, can be set using the
+parameter `xerr` or `yerr`, respectively. The `fmt` parameter accepts a format
+specifier consisting of style and color code:
+
+```python
+rng = np.random.RandomState(0)
+points = 20
+dy = 0.5
+
+x = np.linspace(0, 10, points)
+err = dy * rng.randn(points)
+y = np.sin(x) + err
+
+plt.errorbar(x, y, yerr=dy, fmt='.')
+plt.show()
+```
+
+![Vertical Error Bars](plots/errorbar-1.png){width=426px}
+
+The error bar can be further fine-tuned by specifying the `ecolor` (color of
+the bar), the `elinewidth` (the width of the error bar) and the `capsize` (the
+size of the ticks orthogonal to the error bar) parameters:
+
+```python
+plt.errorbar(x, y, yerr=dy, fmt='.', ecolor='#cccccc', elinewidth=2, capsize=5)
+```
+
+![Customized Error Bars](plots/errorbar-2.png){width=426px}
+
+The error of continuous quantities can be indicated by filling a area around
+the graph displaying the values. This can be achieved by using a combination of
+the `plt.plot` (indicating the values) and the `plt.fill_between` (indicating
+the area of error) function.
+
+```python
+rng = np.random.RandomState(0)
+points = 100
+dy = 0.25
+
+x = np.linspace(0, 10, points)
+err = dy * rng.randn(points)
+y = np.sin(x) + err
+
+plt.plot(x, y)
+plt.fill_between(x, y-dy, y+dy, color='#cccccc', alpha=.5)
+plt.show()
+```
+
+The second argument (`y-dy`) is the lower, the third argument (`y+dy`) the
+upper bound of the error area.
+
+![Error Area for Continuous Values](plots/error-area.png){width=426px}
+
+The methods `errorbar` and `fill_between` are also available in the axes'
+OO-style interface:
+
+```python
+fig, ax = plt.subplots(2)
+ax[0].errorbar(x, y, yerr=err, fmt='.')
+ax[1].plot(x, y)
+ax[1].fill_between(x, y-dy, y+dy, color='#cccccc', alpha=.5)
+plt.show()
+```
+
+![Error Bar and Area Combined](plots/errors-combined.png){width=426px}
