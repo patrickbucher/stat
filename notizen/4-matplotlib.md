@@ -518,3 +518,88 @@ plt.show()
 ```
 
 ![Error Bar and Area Combined](plots/errors-combined.png){width=426px}
+
+## Density and Contour Plots
+
+Three-dimensional data can be displayed in two dimensions using contours or
+color-coded regions. A function `z=f(x, y)` can be visualized by using `x` and
+`y` as the positions on the grid, and `z` for the contour level:
+
+```python
+def f(x, y):
+    return np.sin(x) + np.cos(x * y) * np.cos(x)
+```
+
+The `z` values are broadcasted into a two-dimensional grid. For the `x` and `y`
+values, broadcasting can be done using the `np.meshgrid` function:
+
+```python
+x = np.linspace(0, 5, 50)
+y = np.linspace(0, 5, 40)
+X, Y = np.meshgrid(x, y)
+Z = f(X, Y)
+```
+
+The contour plot can be created using the `plt.contour` function:
+
+```python
+plt.contour(X, Y, Z, colors='black')
+plt.show()
+```
+
+![Contour Plot of a `z=f(x,y)` Function](plots/contour-1.png){width=426px}
+
+Negative `z` values are represented by dashed, positive `z` values by solid
+lines. A color code with a number of intervals can be used in conjuncton with a
+colormap instead:
+
+```python
+plt.contour(X, Y, Z, 20, cmap='RdGy')
+```
+
+![Contour Plot Using a Color Map](plots/contour-2.png){width=426px}
+
+`RdGy` is a red-green colormap, with red indicating negative and grey positive
+values. More colormaps are available under `plt.cm`.
+
+Instead of a contour plot with its distracting gaps, a _filled_ contour plot
+can be created using the `plt.contourf` function:
+
+```python
+plt.contourf(X, Y, Z, 20, cmap='RdGy')
+plt.colorbar()
+```
+
+![Filled Contour Plot](plots/contour-3.png){width=426px}
+
+The colorbar helps to identify peaks and valleys. The color steps are discrete
+(20 contours) rather than continuous. The number of contours could be
+increases, which would be rather inefficient. The `plt.imshow` function is a
+faster option for that purpose:
+
+```python
+plt.imshow(Z, extent=[0, 5, 0, 5], origin='lower', cmap='RdGy')
+plt.colorbar()
+plt.axis(aspect='image')
+```
+
+![Contour Plot as an Image](plots/contour-4.png){width=426px}
+
+- Instead of a grid, the value range on the x and y axis is defined as the
+  `extent` of the form `[xmin, xmax, ymin, ymax]`.
+- The image is drawn from the lower left (like a function), not from the upper
+  left (like an image) by setting the `origin` argument `lower`.
+- To match the x and y units, the `aspect` argument is set to `image` to
+  prevent automatic aspect ratio adjustment.
+
+Image and contour plots can also be combined, and the contours can also be
+labeled with their value:
+
+```python
+contours = plt.contour(X, Y, Z, 3, colors='black')
+plt.clabel(contours, inline=True, fontsize=8)
+plt.imshow(Z, extent=[0, 5, 0, 5], origin='lower', cmap='RdGy', alpha=0.5)
+plt.colorbar()
+```
+
+![Partially Transparent Background Image, Over-Plotted with Contours and Labels](plots/contour-5.png){width=426px}
