@@ -1,5 +1,5 @@
 EPUBPARAMS=--toc -N -s -t epub
-PDFPARAMS=--toc -N -s -t latex --pdf-engine=xelatex -V documentclass=scrartcl -V papersize=a4 -V lang=en -V urlcolor=blue -V linkcolor=blue
+PDFPARAMS=--toc -N -s -t latex --pdf-engine=xelatex -V documentclass=scrartcl -V papersize=a4 -V lang=en -V urlcolor=blue -V linkcolor=blue -V fontsize=10pt -V geometry='top=1in,right=1in,left=1in,bottom=1.5in'
 FONTS=-V mainfont='DejaVu Serif' -V sansfont='DejaVu Sans' -V monofont='DejaVu Sans Mono'
 DATE=-V date="`date +'%Y-%m-%d'`"
 

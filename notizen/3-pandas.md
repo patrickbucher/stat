@@ -2649,7 +2649,7 @@ the opticts from the seaborn package:
 >>> plt.show();
 ```
 
-![Microsoft Stock Price](plots/msft-close.png){width=426px}
+![Microsoft Stock Price](plots/msft-close.png)
 
 The time series can be resampled to a higher or lower frequency using the
 `resample()` method, which can be used to perform a data aggregation. The
@@ -2667,7 +2667,7 @@ compared to the daily closing prices:
 >>> plt.show()
 ```
 
-![Resampling and Frequency Conversion](plots/msft-resample-asfreq.png){width=426px}
+![Resampling and Frequency Conversion](plots/msft-resample-asfreq.png)
 
 Time shifts are useful to compute differences over time. The method `tshift()`
 can be used to shift the index values, whereas the method `shift()` shifts the
@@ -2682,7 +2682,7 @@ data itself. The shift is specified in multiples of the underlying frequency:
 >>> plt.show()
 ```
 
-![Shifting](plots/cs-shift.png){width=426px}
+![Shifting](plots/cs-shift.png)
 
 Rolling statistics can be used to perform different aggregations over a rolling
 data window, like the mean of the last 365 days relative to every day.
@@ -2697,7 +2697,7 @@ data window, like the mean of the last 365 days relative to every day.
 >>> plt.show()
 ```
 
-![Rolling Window](plots/aapl-rolling.png){width=426px}
+![Rolling Window](plots/aapl-rolling.png)
 
 ## High-Performance Pandas: `eval()` and `query()`
 
