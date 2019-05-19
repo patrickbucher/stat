@@ -243,7 +243,7 @@ be defined in a list:
 
 ```python
 >>> s = pd.Series([1, 2, 3])
->>> pd.DataFrme(s, columns=['values'])
+>>> pd.DataFrame(s, columns=['values'])
    values
 0       1
 1       2
